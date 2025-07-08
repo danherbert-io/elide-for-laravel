@@ -1,0 +1,16 @@
+{
+    "name": "danherbert-io/elide-for-laravel",
+    "description": "HTMX utils to streamline and build... inertia... for your HTMX powered site.",
+    "autoload": {
+        "psr-4": {
+            "DanherbertIo\\ElideForLaravel\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Dan Herbert",
+            "email": "dan@danherbert.io"
+        }
+    ],
+    "require": {}
+}
