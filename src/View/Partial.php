@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Elide\View;
 
+use Elide\Contracts\ComponentSpecifiesSwapTarget;
 use Illuminate\Support\Str;
 use Illuminate\View\Component;
 use Illuminate\View\View;
@@ -65,12 +66,16 @@ class Partial
                 ->render(),
         };
 
+        $swapTarget = $component instanceof ComponentSpecifiesSwapTarget
+            ? $component->swapTarget()
+            : (is_bool($this->swapOob) ? ($this->swapOob ? 'true' : 'false') : $this->swapOob);
+
         return sprintf(
             '<%1$s id="partial:%2$s" style="display: contents;" hx-swap-oob="%4$s">%3$s</%1$s>',
             e($this->enclosingTagName),
             e($this->name),
             $content,
-            e(is_bool($this->swapOob) ? ($this->swapOob ? 'true' : 'false') : $this->swapOob),
+            e($swapTarget),
         );
     }
 }
