@@ -13,7 +13,7 @@ class HtmxRequest extends Request
         return $this->hasHeader('HX-Boosted');
     }
 
-    public function currentUrl(): string
+    public function currentUrl(): ?string
     {
         return $this->header('HX-Current-Url');
     }
@@ -46,5 +46,19 @@ class HtmxRequest extends Request
     public function trigger(): ?string
     {
         return $this->header('HX-Trigger');
+    }
+
+    public function inspect(): array
+    {
+        return [
+            'isBoosted' => $this->isBoosted(),
+            'currentUrl' => $this->currentUrl(),
+            'isHistoryStoreRequest' => $this->isHistoryStoreRequest(),
+            'isPrompt' => $this->isPrompt(),
+            'isHtmxRequest' => $this->isHtmxRequest(),
+            'target' => $this->target(),
+            'triggerName' => $this->triggerName(),
+            'trigger' => $this->trigger(),
+        ];
     }
 }

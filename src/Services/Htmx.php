@@ -11,6 +11,10 @@ use Illuminate\View\View;
 
 class Htmx
 {
+    protected string $rootView = 'app';
+
+    protected array $usingPartials = [];
+
     /** @var array<Partial|View|Component|string> */
     public static array $pendingPartials = [];
 
@@ -20,14 +24,36 @@ class Htmx
         $this->number = $number ?: rand();
     }
 
-    public function render(Partial|View|Component|string $component, array $props = []): Response
+    public function setRootView(string $view): static
     {
-        return (new Response($component, $props))->usingPartials(function () {
-            return [
-                ...$this->flushPendingPartials(),
-                //@TODO include "always/shared partials"
-            ];
-        });
+        $this->rootView = $view;
+
+        return $this;
+    }
+
+    public function usingPartials(callable $callable): static
+    {
+        $this->usingPartials[] = $callable;
+
+        return $this;
+    }
+
+    public function render(
+        Partial|View|Component|string $component,
+        array $props = [],
+        ?string $partialName = 'content'
+    ): Response {
+        $response = new Response($component, $props, $this->rootView, $partialName);
+
+        foreach ($this->usingPartials as $callable) {
+            $response->usingPartials($callable);
+        }
+
+        return $response
+            ->reswap('none')
+            ->usingPartials(function () {
+                return $this->flushPendingPartials();
+            });
     }
 
     public function sendWithResponse(Partial|View|Component|string $partial): static
@@ -37,7 +63,8 @@ class Htmx
         return $this;
     }
 
-    public function partial(View|Component|string $component, array $props = []): Partial {
+    public function partial(View|Component|string $component, array $props = []): Partial
+    {
         return Partial::resolveFrom($component, $props);
     }
 

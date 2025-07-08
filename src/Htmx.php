@@ -11,6 +11,8 @@ use Illuminate\View\Component;
 use Illuminate\View\View;
 
 /**
+ * @method static Services\Htmx rootView(string $view)
+ * @method static Services\Htmx usingPartials(callable $callable)
  * @method static Response render(Partial|View|Component|string $component, array $props = [])
  * @method static Partial partial(View|Component|string $component, array $props = [])
  * @method static Services\Htmx sendWithResponse(Partial|View|Component|string $partial)
