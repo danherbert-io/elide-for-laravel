@@ -40,7 +40,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Elide\\ElideServiceProvider"
+        "Elide\\Providers\\ElideServiceProvider"
       ]
     }
   },
