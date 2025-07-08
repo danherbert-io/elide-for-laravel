@@ -57,7 +57,8 @@ class Partial
         }
 
         $content = match (true) {
-            is_string($component) => (string) view($component, $this->props),
+            is_string($component) && empty($component) => '',
+            is_string($component) && !empty($component) => (string) view($component, $this->props),
             $component instanceof View => $component->with($this->props)->render(),
             $component instanceof Component => $component->resolveView()
                 ->with([...$component->data(), ...$this->props])

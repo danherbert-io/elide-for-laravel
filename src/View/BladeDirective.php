@@ -15,11 +15,14 @@ if (!is_string($key)) {
 if (array_key_exists($key, $partials)) {
     echo $partials[$key];
 }
-elseif (!class_exists($key) || is_subclass_of($key, Illuminate\View\View::class) || is_subclass_of($key, \Illuminate\View\Component::class)) {
+elseif (!empty($key) && !class_exists($key) && (is_subclass_of($key, Illuminate\View\View::class) || is_subclass_of($key, \Illuminate\View\Component::class))) {
     $name = \Elide\View\Partial::resolvePartialName($key);
     if (array_key_exists($name, $partials)) {
         echo $partials[$name];
     }
+}
+else {
+    echo (new \Elide\View\Partial('', $key))->render();
 }
 ?>
 PHP;
