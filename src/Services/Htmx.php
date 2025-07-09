@@ -6,6 +6,7 @@ namespace Elide\Services;
 
 use Elide\Http\Response;
 use Elide\View\Partial;
+use Illuminate\Container\Container;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
@@ -19,12 +20,10 @@ class Htmx
     public static array $pendingPartials = [];
 
     public function __construct(
-        public int $number = 0,
-    ) {
-        $this->number = $number ?: rand();
-    }
+        public readonly Container $container,
+    ) {}
 
-    public function setRootView(string $view): static
+    public function rootView(string $view): static
     {
         $this->rootView = $view;
 
@@ -63,9 +62,9 @@ class Htmx
         return $this;
     }
 
-    public function partial(View|Component|string $component, array $props = []): Partial
+    public function partial(View|Component|string $component, array $props = [], ?string $name = null): Partial
     {
-        return Partial::resolveFrom($component, $props);
+        return Partial::resolveFrom($component, $props, $name);
     }
 
     public function flushPendingPartials(): array

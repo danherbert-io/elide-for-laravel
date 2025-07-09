@@ -1,0 +1,1 @@
+alternate test component output

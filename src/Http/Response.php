@@ -20,7 +20,7 @@ class Response implements Responsable
 
     protected array $usingPartials = [];
 
-    protected null|Partial $partial = null;
+    protected ?Partial $partial = null;
 
     protected HtmxRequest $request;
 
@@ -43,13 +43,13 @@ class Response implements Responsable
         if ($this->component) {
             $this->partial = Partial::resolveFrom($component, $props, $this->partialName);
         }
-        $this->request = HtmxRequest::capture();
+        $this->request = HtmxRequest::createFrom(request());
         $this->status($status);
     }
 
     public function status(int $code): static
     {
-        if (!array_key_exists($code, SymfonyResponse::$statusTexts)) {
+        if (! array_key_exists($code, SymfonyResponse::$statusTexts)) {
             throw new \InvalidArgumentException(sprintf(
                 'Provided code "%s" is not a valid HTTP status code.',
                 $code,
@@ -69,12 +69,12 @@ class Response implements Responsable
         /** @var Collection $partials */
         $partials = $this->component
             ? collect($this->usingPartials)
-                ->map(fn(callable $partial) => $partial())
+                ->map(fn (callable $partial) => $partial())
                 ->flatten(1)
-                ->map(fn(Partial|View|Component|string $partial) => Partial::resolveFrom($partial))
+                ->map(fn (Partial|View|Component|string $partial) => Partial::resolveFrom($partial))
                 ->push($this->partial)
-                ->groupBy(fn(Partial $partial) => $partial->name)
-                ->map(fn(Collection $group) => $group->map->render())
+                ->groupBy(fn (Partial $partial) => $partial->name)
+                ->map(fn (Collection $group) => $group->map->render())
             : collect();
 
         if ($this->request->isHtmxRequest()) {
@@ -93,7 +93,7 @@ class Response implements Responsable
             );
         }
 
-        if (!$this->component) {
+        if (! $this->component) {
             return response(
                 content: null,
                 status: $this->status,
@@ -101,7 +101,7 @@ class Response implements Responsable
             );
         }
 
-        $partials = $partials->map(fn(Collection $group) => $group->join("\n"));
+        $partials = $partials->map(fn (Collection $group) => $group->join("\n"));
 
         $props = ['partials' => $partials->toArray()];
 
@@ -117,7 +117,7 @@ class Response implements Responsable
         );
     }
 
-    public function title(null|string $title): static
+    public function title(?string $title): static
     {
         $this->title = $title;
 
@@ -139,7 +139,7 @@ class Response implements Responsable
         if (is_null($target)) {
             $this->headers->set('HX-Location', $path);
         } else {
-            $this->headers->set('Location', json_encode(compact('path', 'target')));
+            $this->headers->set('HX-Location', json_encode(compact('path', 'target')));
         }
 
         return $this;
@@ -199,7 +199,7 @@ class Response implements Responsable
 
     public function reselect(string $cssSelector): static
     {
-        $this->headers->set('HX-Retarget', $cssSelector);
+        $this->headers->set('HX-Reselect', $cssSelector);
 
         return $this;
     }
@@ -211,13 +211,10 @@ class Response implements Responsable
      */
     public function trigger(string|array $event, HtmxTrigger $when = HtmxTrigger::IMMEDIATELY): static
     {
-        $header = match ($when) {
-            HtmxTrigger::IMMEDIATELY => 'HX-Trigger',
-            HtmxTrigger::AFTER_SETTLE => 'HX-Trigger-After-Settle',
-            HtmxTrigger::AFTER_SWAP => 'HX-Trigger-After-Swap',
-        };
-
-        $this->headers->set($header, json_encode($event));
+        $this->headers->set(
+            $when->header(),
+            is_string($event) ? $event : json_encode($event),
+        );
 
         return $this;
     }

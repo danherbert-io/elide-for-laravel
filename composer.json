@@ -7,15 +7,17 @@
   ],
   "autoload": {
     "psr-4": {
+      "Tests\\": "tests/",
       "Elide\\": "src"
     },
     "files": [
-      "./helpers.php"
+      "src/helpers.php"
     ]
   },
   "autoload-dev": {
     "psr-4": {
-      "Elide\\Tests\\": "tests/"
+      "Elide\\Tests\\": "tests/",
+      "Workbench\\App\\": "workbench/app/"
     }
   },
   "license": "MIT",
@@ -41,9 +43,18 @@
     "laravel": {
       "providers": [
         "Elide\\Providers\\ElideServiceProvider"
-      ]
+      ],
+      "aliases": {
+        "Htmx": "Elide\\Htmx"
+      }
     }
   },
   "minimum-stability": "dev",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "scripts": {
+    "post-autoload-dump": "@prepare",
+    "prepare": "@php vendor/bin/testbench package:discover --ansi",
+    "pint" : "@php vendor/bin/pint",
+    "test": "@php vendor/bin/phpunit"
+  }
 }

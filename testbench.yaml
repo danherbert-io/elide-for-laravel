@@ -1,0 +1,5 @@
+providers:
+  - Elide\Providers\ElideServiceProvider
+
+workbench:
+  install: true

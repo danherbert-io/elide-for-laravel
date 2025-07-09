@@ -1,0 +1,212 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Feature;
+
+use Elide\Enums\HtmxTrigger;
+use Elide\Htmx;
+use Elide\Http\Response;
+use Illuminate\Support\Facades\Route;
+use Tests\TestCase;
+use Workbench\App\View\Components\AlternateTestComponent;
+use Workbench\App\View\Components\TestComponent;
+
+class ResponseTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Htmx::rootView('test::app');
+
+        Route::get('test', function () {
+            return Htmx::render(TestComponent::class);
+        });
+    }
+
+    public function test_it_returns_full_response(): void
+    {
+        $response = $this->get('test');
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $partial = Htmx::partial(TestComponent::class, name: 'content')->render();
+
+        $this->assertStringStartsWith('<html>', $content);
+        $this->assertStringEndsWith('</html>', $content);
+
+        $this->assertStringContainsString($partial, $content);
+    }
+
+    public function test_it_returns_partial_only_response(): void
+    {
+        $response = $this
+            ->withHeaders([
+                'HX-Request' => 'true',
+            ])
+            ->get('test');
+
+        $response->assertStatus(200);
+
+        $partial = Htmx::partial(TestComponent::class, name: 'content')->render();
+        $content = trim($response->getContent());
+
+        $this->assertSame($content, $partial);
+    }
+
+    public function test_it_includes_service_level_partials_for_ajax_responses(): void
+    {
+        Htmx::usingPartials(fn () => [
+            'alternate-test-component' => Htmx::partial(AlternateTestComponent::class),
+        ]);
+
+        $response = $this
+            ->withHeaders([
+                'HX-Request' => 'true',
+            ])
+            ->get('test');
+
+        $response->assertStatus(200);
+
+        $contentPartial = Htmx::partial(TestComponent::class, name: 'content')->render();
+        $extraPartial = Htmx::partial(AlternateTestComponent::class)->render();
+
+        $content = trim($response->getContent());
+
+        $this->assertStringContainsString($contentPartial, $content);
+        $this->assertStringContainsString($extraPartial, $content);
+
+        $this->assertStringNotContainsString('<html>', $content);
+    }
+
+    public function test_it_sends_location(): void
+    {
+        $response = (new Response)
+            ->location('the-location')
+            ->toResponse(request());
+        $this->assertSame('the-location', $response->headers->get('HX-Location'));
+    }
+
+    public function test_it_sends_location_with_target(): void
+    {
+        $response = (new Response)
+            ->location('the-location', '#the-target')
+            ->toResponse(request());
+        $this->assertSame('{"path":"the-location","target":"#the-target"}', $response->headers->get('HX-Location'));
+    }
+
+    public function test_it_sends_push_url(): void
+    {
+        $response = (new Response)
+            ->pushUrl('the-new-url')
+            ->toResponse(request());
+        $this->assertSame('the-new-url', $response->headers->get('HX-Push-Url'));
+    }
+
+    public function test_it_sends_push_url_false(): void
+    {
+        $response = (new Response)
+            ->pushUrl(false)
+            ->toResponse(request());
+        $this->assertSame('false', $response->headers->get('HX-Push-Url'));
+    }
+
+    public function test_it_sends_redirect(): void
+    {
+        $response = (new Response)
+            ->redirect('the-new-url')
+            ->toResponse(request());
+        $this->assertSame('the-new-url', $response->headers->get('HX-Redirect'));
+    }
+
+    public function test_it_sends_refresh(): void
+    {
+        $response = (new Response)
+            ->refresh()
+            ->toResponse(request());
+        $this->assertSame('true', $response->headers->get('HX-Refresh'));
+    }
+
+    public function test_it_replaces_url(): void
+    {
+        $response = (new Response)
+            ->replaceUrl('the-new-url')
+            ->toResponse(request());
+        $this->assertSame('the-new-url', $response->headers->get('HX-Replace-Url'));
+    }
+
+    public function test_it_replaces_url_false(): void
+    {
+        $response = (new Response)
+            ->replaceUrl(false)
+            ->toResponse(request());
+        $this->assertSame('false', $response->headers->get('HX-Replace-Url'));
+    }
+
+    public function test_it_reswaps(): void
+    {
+        $response = (new Response)
+            ->reswap('swap-strategy')
+            ->toResponse(request());
+        $this->assertSame('swap-strategy', $response->headers->get('HX-Reswap'));
+    }
+
+    public function test_it_retargets(): void
+    {
+        $response = (new Response)
+            ->retarget('#new-target')
+            ->toResponse(request());
+        $this->assertSame('#new-target', $response->headers->get('HX-Retarget'));
+    }
+
+    public function test_it_reselects(): void
+    {
+        $response = (new Response)
+            ->reselect('#new-target')
+            ->toResponse(request());
+        $this->assertSame('#new-target', $response->headers->get('HX-Reselect'));
+    }
+
+    public function test_it_triggers_simple_events(): void
+    {
+        foreach (HtmxTrigger::cases() as $when) {
+            $response = (new Response)
+                ->trigger('the-event from:body', $when)
+                ->toResponse(request());
+            $this->assertSame('the-event from:body', $response->headers->get($when->header()));
+        }
+    }
+
+    public function test_it_triggers_detailed_events(): void
+    {
+        $event = [
+            'show-message' => 'The message',
+        ];
+        foreach (HtmxTrigger::cases() as $when) {
+            $response = (new Response)
+                ->trigger($event, $when)
+                ->toResponse(request());
+
+            $this->assertSame(json_encode($event), $response->headers->get($when->header()));
+        }
+    }
+
+    public function test_it_triggers_multiple_detailed_events(): void
+    {
+        $event = [
+            'show-message' => 'The message',
+            'highlight-element' => [
+                'target' => '#the-element',
+            ],
+        ];
+        foreach (HtmxTrigger::cases() as $when) {
+            $response = (new Response)
+                ->trigger($event, $when)
+                ->toResponse(request());
+
+            $this->assertSame(json_encode($event), $response->headers->get($when->header()));
+        }
+    }
+}
