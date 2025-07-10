@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Feature;
 
 use Elide\Enums\HtmxTrigger;
+use Elide\Enums\RequestKind;
 use Elide\Htmx;
 use Elide\Http\Response;
 use Illuminate\Support\Facades\Route;
@@ -62,11 +63,7 @@ class ResponseTest extends TestCase
             'alternate-test-component' => Htmx::partial(AlternateTestComponent::class),
         ]);
 
-        $response = $this
-            ->withHeaders([
-                'HX-Request' => 'true',
-            ])
-            ->get('test');
+        $response = $this->withHeaders(['HX-Request' => 'true'])->get('test');
 
         $response->assertStatus(200);
 
@@ -79,6 +76,75 @@ class ResponseTest extends TestCase
         $this->assertStringContainsString($extraPartial, $content);
 
         $this->assertStringNotContainsString('<html>', $content);
+    }
+
+    public function test_it_returns_ajax_only_service_level_partials_appropriately(): void
+    {
+        Htmx::usingPartials(fn () => [
+            'alternate-test-component' => Htmx::partial(AlternateTestComponent::class),
+        ], for: RequestKind::AJAX);
+
+        $ajaxPartial = Htmx::partial(AlternateTestComponent::class)->render();
+
+        $response = $this->get('test');
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $this->assertStringNotContainsString($ajaxPartial, $content);
+
+        $response = $this->withHeaders(['HX-Request' => 'true'])->get('test');
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $this->assertStringContainsString($ajaxPartial, $content);
+    }
+
+    public function test_it_returns_non_ajax_only_service_level_partials_appropriately(): void
+    {
+        Htmx::usingPartials(fn () => [
+            'alternate-test-component' => Htmx::partial(AlternateTestComponent::class),
+        ], for: RequestKind::NON_AJAX);
+
+        $ajaxPartial = Htmx::partial(AlternateTestComponent::class)->render();
+
+        $response = $this->get('test');
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $this->assertStringContainsString($ajaxPartial, $content);
+
+        $response = $this->withHeaders(['HX-Request' => 'true'])->get('test');
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $this->assertStringNotContainsString($ajaxPartial, $content);
+    }
+
+    public function test_it_returns_ajax_and_non_ajax_only_service_level_partials_appropriately(): void
+    {
+        Htmx::usingPartials(fn () => [
+            'alternate-test-component' => Htmx::partial(AlternateTestComponent::class),
+        ]);
+
+        $ajaxPartial = Htmx::partial(AlternateTestComponent::class)->render();
+
+        $response = $this->get('test');
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $this->assertStringContainsString($ajaxPartial, $content);
+
+        $response = $this->withHeaders(['HX-Request' => 'true'])->get('test');
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $this->assertStringContainsString($ajaxPartial, $content);
     }
 
     public function test_it_sends_location(): void

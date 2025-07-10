@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Elide\Services;
 
+use Elide\Enums\RequestKind;
 use Elide\Http\Response;
 use Elide\View\Partial;
 use Illuminate\Container\Container;
@@ -14,7 +15,11 @@ class Htmx
 {
     protected string $rootView = 'app';
 
-    protected array $usingPartials = [];
+    protected array $usingPartials = [
+        RequestKind::BOTH->value => [],
+        RequestKind::AJAX->value => [],
+        RequestKind::NON_AJAX->value => [],
+    ];
 
     /** @var array<Partial|View|Component|string> */
     public static array $pendingPartials = [];
@@ -30,9 +35,9 @@ class Htmx
         return $this;
     }
 
-    public function usingPartials(callable $callable): static
+    public function usingPartials(callable $callable, RequestKind $for = RequestKind::BOTH): static
     {
-        $this->usingPartials[] = $callable;
+        $this->usingPartials[$for->value][] = $callable;
 
         return $this;
     }
@@ -44,7 +49,12 @@ class Htmx
     ): Response {
         $response = new Response($component, $props, $this->rootView, $partialName);
 
-        foreach ($this->usingPartials as $callable) {
+        $partials = [
+            ...$this->usingPartials[($response->request->isHtmxRequest() ? RequestKind::AJAX->value : RequestKind::NON_AJAX->value)],
+            ...$this->usingPartials[RequestKind::BOTH->value],
+        ];
+
+        foreach ($partials as $callable) {
             $response->usingPartials($callable);
         }
 

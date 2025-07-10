@@ -22,7 +22,7 @@ class Response implements Responsable
 
     protected ?Partial $partial = null;
 
-    protected HtmxRequest $request;
+    public readonly HtmxRequest $request;
 
     protected ResponseHeaderBag $headers;
 
