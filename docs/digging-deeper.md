@@ -1,10 +1,10 @@
 # Digging Deeper
 
 
-- [partials](partials.md)
-- [htmx-render](htmx-render.md)
-- [htmx-request](htmx-request.md)
-- [htmx-response](htmx-response.md)
+- [partials](./digging-deeper/partials.md)
+- [htmx-render](./digging-deeper/htmx-render.md)
+- [htmx-request](./digging-deeper/htmx-request.md)
+- [htmx-response](./digging-deeper/htmx-response.md)
 
 
 
