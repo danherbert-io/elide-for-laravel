@@ -51,21 +51,20 @@ class Partial
         public readonly array $props = [],
         public readonly string $enclosingTagName = 'div',
         public readonly bool|string $swapOob = true,
-    ) {}
+    ) {
+    }
 
     public function render(): string
     {
         $component = $this->component;
 
         if (is_string($component) && is_subclass_of($component, Component::class)) {
-            // @TODO - Check into this rather strong assumption of setting props as args...
-            //            $component = new $component(...$this->props);
-            $component = new $component;
+            $component = app($component, $this->props);
         }
 
         $content = match (true) {
             is_string($component) && empty($component) => '',
-            is_string($component) && ! empty($component) => (string) view($component, $this->props),
+            is_string($component) && !empty($component) => (string) view($component, $this->props),
             $component instanceof View => $component->with($this->props)->render(),
             $component instanceof Component => $component->resolveView()
                 ->with([...$component->data(), ...$this->props])

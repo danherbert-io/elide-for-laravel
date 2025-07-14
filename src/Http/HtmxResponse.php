@@ -14,7 +14,7 @@ use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
-class Response implements Responsable
+class HtmxResponse implements Responsable
 {
     use ResponseTrait;
 
@@ -49,7 +49,7 @@ class Response implements Responsable
 
     public function status(int $code): static
     {
-        if (! array_key_exists($code, SymfonyResponse::$statusTexts)) {
+        if (!array_key_exists($code, SymfonyResponse::$statusTexts)) {
             throw new \InvalidArgumentException(sprintf(
                 'Provided code "%s" is not a valid HTTP status code.',
                 $code,
@@ -67,15 +67,16 @@ class Response implements Responsable
     public function toResponse($request)
     {
         /** @var Collection $partials */
-        $partials = $this->component
-            ? collect($this->usingPartials)
-                ->map(fn (callable $partial) => $partial())
+        $partials =
+            collect($this->usingPartials)
+                ->map(fn(callable $partial) => $partial())
                 ->flatten(1)
-                ->map(fn (Partial|View|Component|string $partial) => Partial::resolveFrom($partial))
-                ->push($this->partial)
-                ->groupBy(fn (Partial $partial) => $partial->name)
-                ->map(fn (Collection $group) => $group->map->render())
-            : collect();
+                ->map(fn(Partial|View|Component|string $partial) => Partial::resolveFrom($partial))
+                ->when($this->component, function (Collection $collection) {
+                    $collection->push($this->partial);
+                })
+                ->groupBy(fn(Partial $partial) => $partial->name)
+                ->map(fn(Collection $group) => $group->map->render());
 
         if ($this->request->isHtmxRequest()) {
             return response(
@@ -93,7 +94,7 @@ class Response implements Responsable
             );
         }
 
-        if (! $this->component) {
+        if (!$this->component) {
             return response(
                 content: null,
                 status: $this->status,
@@ -101,7 +102,7 @@ class Response implements Responsable
             );
         }
 
-        $partials = $partials->map(fn (Collection $group) => $group->join("\n"));
+        $partials = $partials->map(fn(Collection $group) => $group->join("\n"));
 
         $props = ['partials' => $partials->toArray()];
 

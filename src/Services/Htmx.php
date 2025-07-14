@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Elide\Services;
 
 use Elide\Enums\RequestKind;
-use Elide\Http\Response;
+use Elide\Http\HtmxResponse;
 use Elide\View\Partial;
 use Illuminate\Container\Container;
 use Illuminate\View\Component;
@@ -46,8 +46,8 @@ class Htmx
         Partial|View|Component|string $component,
         array $props = [],
         ?string $partialName = 'content'
-    ): Response {
-        $response = new Response($component, $props, $this->rootView, $partialName);
+    ): HtmxResponse {
+        $response = new HtmxResponse($component, $props, $this->rootView, $partialName);
 
         $partials = [
             ...$this->usingPartials[($response->request->isHtmxRequest() ? RequestKind::AJAX->value : RequestKind::NON_AJAX->value)],

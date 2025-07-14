@@ -1,9 +1,20 @@
 # Digging Deeper
 
 
-The above is a basic setup, and not really that useful. You'll usually want to be sending a bunch of different
-components back to the frontend, such as application navigation, toast notifications, a shopping cart with quantity
-indicator, user profile menu... Anything potentially requiring dynamic updates.
+- [partials](partials.md)
+- [htmx-render](htmx-render.md)
+- [htmx-request](htmx-request.md)
+- [htmx-response](htmx-response.md)
+
+
+
+
+
+
+---
+
+
+The steps provided in [the installation instructions](installation.md) are very basic. You'll usually want to be sending a bunch of different components to the frontend in a range of different scenarios. Such components might be: application navigation, toast notifications, a shopping cart with quantity indicator, user profile menu... Anything potentially requiring dynamic updates.
 
 ### Specifying additional partials to be sent with every `Htmx::render()` response
 
@@ -22,7 +33,7 @@ class ApplicationNavigation extends Component
 }
 ```
 
-In our `app.blade.php` file, we now add a reference to this partial:
+In our `app.blade.php` file, we might now add a reference to this partial:
 
 ```bladehtml
 
@@ -34,13 +45,12 @@ In our `app.blade.php` file, we now add a reference to this partial:
 ```
 
 > [!TIP]
-> It is important to note that Elide handles rendering of the component for you — you do not need to reference the
-> component itself via `<x-application-navigation ...>`
+> It is important to note that Elide handles rendering of views and components for you — you do not need to reference the component itself via `<x-application-navigation ...>`
 
 > [!TIP]
-> The name of the partial (`application-navigation`) is automatically determined from the component's class name.
+> The name of the partial which we have used in our template (`application-navigation`) is automatically determined from the component's class name.
 
-We can instruct Elide to return this component with every HTMX AJAX request.
+Now that our app template looks for this partial, we can instruct Elide to return this component with every HTMX AJAX request.
 
 One way of doing this would be to add it to your app's service provider:
 

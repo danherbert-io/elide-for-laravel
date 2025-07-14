@@ -7,7 +7,7 @@ namespace Feature;
 use Elide\Enums\HtmxTrigger;
 use Elide\Enums\RequestKind;
 use Elide\Htmx;
-use Elide\Http\Response;
+use Elide\Http\HtmxResponse;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 use Workbench\App\View\Components\AlternateTestComponent;
@@ -149,7 +149,7 @@ class ResponseTest extends TestCase
 
     public function test_it_sends_location(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->location('the-location')
             ->toResponse(request());
         $this->assertSame('the-location', $response->headers->get('HX-Location'));
@@ -157,7 +157,7 @@ class ResponseTest extends TestCase
 
     public function test_it_sends_location_with_target(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->location('the-location', '#the-target')
             ->toResponse(request());
         $this->assertSame('{"path":"the-location","target":"#the-target"}', $response->headers->get('HX-Location'));
@@ -165,7 +165,7 @@ class ResponseTest extends TestCase
 
     public function test_it_sends_push_url(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->pushUrl('the-new-url')
             ->toResponse(request());
         $this->assertSame('the-new-url', $response->headers->get('HX-Push-Url'));
@@ -173,7 +173,7 @@ class ResponseTest extends TestCase
 
     public function test_it_sends_push_url_false(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->pushUrl(false)
             ->toResponse(request());
         $this->assertSame('false', $response->headers->get('HX-Push-Url'));
@@ -181,7 +181,7 @@ class ResponseTest extends TestCase
 
     public function test_it_sends_redirect(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->redirect('the-new-url')
             ->toResponse(request());
         $this->assertSame('the-new-url', $response->headers->get('HX-Redirect'));
@@ -189,7 +189,7 @@ class ResponseTest extends TestCase
 
     public function test_it_sends_refresh(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->refresh()
             ->toResponse(request());
         $this->assertSame('true', $response->headers->get('HX-Refresh'));
@@ -197,7 +197,7 @@ class ResponseTest extends TestCase
 
     public function test_it_replaces_url(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->replaceUrl('the-new-url')
             ->toResponse(request());
         $this->assertSame('the-new-url', $response->headers->get('HX-Replace-Url'));
@@ -205,7 +205,7 @@ class ResponseTest extends TestCase
 
     public function test_it_replaces_url_false(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->replaceUrl(false)
             ->toResponse(request());
         $this->assertSame('false', $response->headers->get('HX-Replace-Url'));
@@ -213,7 +213,7 @@ class ResponseTest extends TestCase
 
     public function test_it_reswaps(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->reswap('swap-strategy')
             ->toResponse(request());
         $this->assertSame('swap-strategy', $response->headers->get('HX-Reswap'));
@@ -221,7 +221,7 @@ class ResponseTest extends TestCase
 
     public function test_it_retargets(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->retarget('#new-target')
             ->toResponse(request());
         $this->assertSame('#new-target', $response->headers->get('HX-Retarget'));
@@ -229,7 +229,7 @@ class ResponseTest extends TestCase
 
     public function test_it_reselects(): void
     {
-        $response = (new Response)
+        $response = (new HtmxResponse)
             ->reselect('#new-target')
             ->toResponse(request());
         $this->assertSame('#new-target', $response->headers->get('HX-Reselect'));
@@ -238,7 +238,7 @@ class ResponseTest extends TestCase
     public function test_it_triggers_simple_events(): void
     {
         foreach (HtmxTrigger::cases() as $when) {
-            $response = (new Response)
+            $response = (new HtmxResponse)
                 ->trigger('the-event from:body', $when)
                 ->toResponse(request());
             $this->assertSame('the-event from:body', $response->headers->get($when->header()));
@@ -251,7 +251,7 @@ class ResponseTest extends TestCase
             'show-message' => 'The message',
         ];
         foreach (HtmxTrigger::cases() as $when) {
-            $response = (new Response)
+            $response = (new HtmxResponse)
                 ->trigger($event, $when)
                 ->toResponse(request());
 
@@ -268,7 +268,7 @@ class ResponseTest extends TestCase
             ],
         ];
         foreach (HtmxTrigger::cases() as $when) {
-            $response = (new Response)
+            $response = (new HtmxResponse)
                 ->trigger($event, $when)
                 ->toResponse(request());
 
