@@ -1,7 +1,7 @@
 <p align="center"><img src="/docs/art/elide-logo.svg" alt="Elide package logo" style="max-width: 300px"></p>
 
 <p align="center">
-[![tests](https://github.com/danherbert-io/elide-for-laravel/actions/workflows/tests.yml/badge.svg)](https://github.com/danherbert-io/elide-for-laravel/actions/workflows/tests.yml)
+<img src="https://github.com/danherbert-io/elide-for-laravel/workflows/tests/badge.svg">
 </p>
 
 ## Intro
