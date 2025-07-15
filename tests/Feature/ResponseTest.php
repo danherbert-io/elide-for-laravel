@@ -9,6 +9,7 @@ use Elide\Enums\RequestKind;
 use Elide\Htmx;
 use Elide\Http\HtmxResponse;
 use Illuminate\Support\Facades\Route;
+use InvalidArgumentException;
 use Tests\TestCase;
 use Workbench\App\View\Components\AlternateTestComponent;
 use Workbench\App\View\Components\TestComponent;
@@ -306,5 +307,39 @@ class ResponseTest extends TestCase
         $content = trim($response->getContent());
 
         $this->assertStringNotContainsString($partial, $content);
+    }
+
+    public function test_it_sends_single_partials(): void
+    {
+        $view = view('test::alternate-test-component');
+
+        Htmx::sendWithResponse($view);
+
+        $pendingPartials = Htmx::flushPendingPartials();
+
+        $this->assertCount(1, $pendingPartials);
+        $this->assertSame($view, $pendingPartials[0]);
+    }
+
+    public function test_it_sends_multiple_partials(): void
+    {
+        $viewA = view('test::alternate-test-component');
+        $viewB = view('test::test-component');
+
+        Htmx::sendWithResponse([$viewA, $viewB]);
+
+        $pendingPartials = Htmx::flushPendingPartials();
+
+        $this->assertCount(2, $pendingPartials);
+        $this->assertSame($viewA, $pendingPartials[0]);
+        $this->assertSame($viewB, $pendingPartials[1]);
+    }
+
+    public function test_it_throws_when_sending_invalid_partials_via_array(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Only Partials, Views, or Components can be returned with HTMX responses');
+
+        Htmx::sendWithResponse([app()]);
     }
 }

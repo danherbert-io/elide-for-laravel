@@ -8,6 +8,7 @@ use Elide\Enums\RequestKind;
 use Elide\Http\HtmxResponse;
 use Elide\View\Partial;
 use Illuminate\Container\Container;
+use Illuminate\Support\Arr;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
@@ -101,9 +102,23 @@ class Htmx
      *
      * @return $this
      */
-    public function sendWithResponse(Partial|View|Component|string $partial): static
+    public function sendWithResponse(array|Partial|View|Component|string $partial): static
     {
-        static::$pendingPartials[] = $partial;
+        $partials = collect(Arr::wrap($partial))
+            ->each(function ($candidate) {
+                if (is_string($candidate) ||
+                    is_subclass_of($candidate, Partial::class) ||
+                    is_subclass_of($candidate, View::class) || $candidate instanceof View ||
+                    is_subclass_of($candidate, Component::class) || $candidate instanceof Component
+                ) {
+                    return;
+                }
+
+                throw new \InvalidArgumentException('Only Partials, Views, or Components can be returned with HTMX responses');
+            })
+            ->toArray();
+
+        static::$pendingPartials = array_merge(static::$pendingPartials, $partials);
 
         return $this;
     }
