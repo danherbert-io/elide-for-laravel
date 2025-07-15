@@ -5,3 +5,4 @@ composer.lock
 phpunit.xml
 /vendor
 .obsidian
+.DS_Store
