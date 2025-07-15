@@ -9,6 +9,10 @@ use Illuminate\View\Component;
 
 class TestComponent extends Component
 {
+    public function __construct(
+        public readonly mixed $prop = null,
+    ) {}
+
     public function render(): View
     {
         return view('test::test-component');

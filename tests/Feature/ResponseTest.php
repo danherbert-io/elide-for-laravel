@@ -342,4 +342,58 @@ class ResponseTest extends TestCase
 
         Htmx::sendWithResponse([app()]);
     }
+
+    public function test_it_renders_with_traditional_view_props(): void
+    {
+        $result = Htmx::partial(
+            view('test::test-component')->with([
+                'prop' => '123',
+            ])
+        )->render();
+
+        $this->assertStringContainsString('Prop value: 123', $result);
+    }
+
+    public function test_it_renders_view_with_provided_props(): void
+    {
+        $result = Htmx::partial(
+            view('test::test-component'),
+            props: [
+                'prop' => '123',
+            ]
+        )->render();
+
+        $this->assertStringContainsString('Prop value: 123', $result);
+    }
+
+    public function test_it_renders_component_with_traditional_props(): void
+    {
+        $result = Htmx::partial(new TestComponent(prop: '123'))->render();
+
+        $this->assertStringContainsString('Prop value: 123', $result);
+    }
+
+    public function test_it_renders_component_with_provided_props(): void
+    {
+        $result = Htmx::partial(
+            new TestComponent,
+            props: [
+                'prop' => '123',
+            ]
+        )->render();
+
+        $this->assertStringContainsString('Prop value: 123', $result);
+    }
+
+    public function test_it_renders_component_class_with_provided_props(): void
+    {
+        $result = Htmx::partial(
+            TestComponent::class,
+            props: [
+                'prop' => '123',
+            ]
+        )->render();
+
+        $this->assertStringContainsString('Prop value: 123', $result);
+    }
 }
