@@ -49,7 +49,8 @@ Route::get('about-us', function() {
 
 The view passed into `Htmx::render(...)` is the "main partial" to be rendered, and will be placed where `@htmxPartial('content')` is located in your template.
 
-> [!TIP] A "partial" is an HTML fragment, usually provided by a view or Blade component. In Elide, the `Partial` class is a thin wrapper over these things and has been designed to streamline out-of-band swaps by handling most of that boilerplate for you.
+> [!TIP]
+> A "partial" is an HTML fragment, usually provided by a view or Blade component. In Elide, the `Partial` class is a thin wrapper over these things and has been designed to streamline out-of-band swaps by handling most of that boilerplate for you.
 
 You can also specify your view name directly for brevity:
 

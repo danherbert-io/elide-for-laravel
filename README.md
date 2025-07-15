@@ -11,7 +11,7 @@ Elide is a small package for use with [Laravel](https://laravel.com/) and [HTMX]
 Strongly inspired by [Inertia](https://github.com/inertiajs/inertia-laravel).
 
 > [!IMPORTANT]
-> Elide is in early development. Perhaps best not to use in production just yet.
+> We're still writing Elide's documentation. In addition to documentation, you can check out the demonstration site: https://github.com/danherbert-io/elide-demo-site
 
 * [Requirements](./docs/requirements.md)
 * [Installation](./docs/installation.md)
@@ -47,12 +47,13 @@ composer require danherbert-io/elide
 </html>
 ```
 
-### Return a HTMX response
+### Return a HTMX response with a `View` or `Component`
 
 ```php
 Route::get('about-us', fn() => Htmx::render(view('content.about-us')));
 ```
-(`view('content.about-us')` will be used for `@htmxPartial('content')`)
+> [!TIP]
+> (`view('content.about-us')` will be used for `@htmxPartial('content')`)
 
 ## Other Laravel+HTMX resources
 

@@ -36,13 +36,15 @@ For example:
 </body>
 ```
 
-> [!TIP] `@htmxPartial('content')` is the "primary" Partial used with Elide's application view. Whatever component is provided to `Htmx::render(...)` will be used for the `'content'` Partial
+> [!TIP]
+> `@htmxPartial('content')` is the "primary" Partial used with Elide's application view. Whatever component is provided to `Htmx::render(...)` will be used for the `'content'` Partial
 
 ## The `Partial` class
 
 The `\Elide\View\Partial` class is a thin wrapper around Laravel `View`s and `Component`s, and is the main "glue" which helps HTMX update the correct parts of the HTML frontend when required.
 
-> [!IMPORTANT] It is important to understand how HTMX's [`hx-swap`](https://htmx.org/attributes/hx-swap/) and [`hx-swap-oob`](https://htmx.org/attributes/hx-swap-oob/) attributes work. They are a fundamental part of how Elide's `Partial`s work.
+> [!IMPORTANT]
+> It is important to understand how HTMX's [`hx-swap`](https://htmx.org/attributes/hx-swap/) and [`hx-swap-oob`](https://htmx.org/attributes/hx-swap-oob/) attributes work. They are a fundamental part of how Elide's `Partial`s work.
 ### Manually creating a `Partial`
 
 The `HTMX::render(...)` method will take care of instantiating `Partial`s for you in many cases, though there may be times where you may need to do it yourself.
@@ -104,7 +106,9 @@ $partial = Htmx::partial(ProfileForm::class, props: [
 ])
 ```
 
-> [!TIP] When a `Component` class name is provided to `Htmx::partial()`, Elide will use Laravel's app container to resolve the provided `Component` class. If the `Component` uses dependency injection to access services, request objects, etc, those will be automagically injected - you don't need to pass them into `Htmx::partial(..., props: [...])`
+> [!TIP]
+> When a `Component` class name is provided to `Htmx::partial()`, Elide will use Laravel's app container to resolve the provided `Component` class. If the `Component` uses dependency injection to access services, request objects, etc, those will be automagically injected - you don't need to pass them into `Htmx::partial(..., props: [...])`
+
 ### The `Partial`'s "glue"
 
 When a `Partial` is rendered, it renders its `View`/`Component` and wraps that HTML in a special container element. That container element has attributes defined to help HTMX update the frontend while also having minimal impact on the HTML's flow and layout.
