@@ -47,13 +47,25 @@ composer require danherbert-io/elide
 </html>
 ```
 
-### Return a HTMX response with a `View` or `Component`
+### Return a HTMX page response with a `View` or `Component`
+
+When using `Htmx::render()` Elide will automatically determine if it needs to return a full page response or just partials.
 
 ```php
 Route::get('about-us', fn() => Htmx::render(view('content.about-us')));
 ```
 > [!TIP]
-> (`view('content.about-us')` will be used for `@htmxPartial('content')`)
+> `view('content.about-us')` will be inserted via `@htmxPartial('content')`
+
+
+### Return just partials for HTMX to inject into the page
+
+```php
+return (new HtmxResponse)
+    ->usingPartials(fn() => [
+        UserProfileForm::class,
+    ]);
+```
 
 ## Other Laravel+HTMX resources
 
