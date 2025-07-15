@@ -1,5 +1,9 @@
 <p align="center"><img src="/docs/art/elide-logo.svg" alt="Elide package logo" style="max-width: 300px"></p>
 
+<p align="center">
+[![tests](https://github.com/danherbert-io/elide-for-laravel/actions/workflows/tests.yml/badge.svg)](https://github.com/danherbert-io/elide-for-laravel/actions/workflows/tests.yml)
+</p>
+
 ## Intro
 
 Elide is a small package for use with [Laravel](https://laravel.com/) and [HTMX](https://htmx.org/). It aims to streamline the gap between backend and frontend by making it easier to return full page responses, or just necessary partials (i.e., components). It also provides handy methods of checking HTMX properties of requests and responses.
