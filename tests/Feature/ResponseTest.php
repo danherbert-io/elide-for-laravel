@@ -275,4 +275,36 @@ class ResponseTest extends TestCase
             $this->assertSame(json_encode($event), $response->headers->get($when->header()));
         }
     }
+
+    public function test_it_sends_partials_with_response(): void
+    {
+        $partial = Htmx::partial(AlternateTestComponent::class)->render();
+
+        Htmx::sendWithResponse(AlternateTestComponent::class);
+
+        $response = $this
+            ->withHeaders([
+                'HX-Request' => 'true',
+            ])
+            ->get('test');
+
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $this->assertStringContainsString($partial, $content);
+
+        // As the partial was sent with the previous response, it should not be sent with the following one.
+        $response = $this
+            ->withHeaders([
+                'HX-Request' => 'true',
+            ])
+            ->get('test');
+
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $this->assertStringNotContainsString($partial, $content);
+    }
 }

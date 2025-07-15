@@ -12,6 +12,9 @@ use Illuminate\View\View;
 
 class Partial
 {
+    /**
+     * Resolve a partial for the provided Partial/View/Component.
+     */
     public static function resolveFrom(
         Partial|View|Component|string $component,
         array $props = [],
@@ -28,6 +31,9 @@ class Partial
         );
     }
 
+    /**
+     * Given a View/Component/string, resolve a name suitable for a Partial.
+     */
     public static function resolvePartialName(View|Component|string $component): string
     {
         $name = match (true) {
@@ -45,15 +51,23 @@ class Partial
             ->toString();
     }
 
+    /**
+     * Instantiate a new Partial for the provided View/Component and name. Optionally specify what the containing tag
+     * name or HTMX OOB swap strategy should be.
+     */
     public function __construct(
         public readonly string|Component|View $component,
         public readonly string $name,
         public readonly array $props = [],
         public readonly string $enclosingTagName = 'div',
         public readonly bool|string $swapOob = true,
-    ) {
-    }
+    ) {}
 
+    /**
+     * Render the partial.
+     *
+     * @throws \Throwable
+     */
     public function render(): string
     {
         $component = $this->component;
@@ -64,7 +78,7 @@ class Partial
 
         $content = match (true) {
             is_string($component) && empty($component) => '',
-            is_string($component) && !empty($component) => (string) view($component, $this->props),
+            is_string($component) && ! empty($component) => (string) view($component, $this->props),
             $component instanceof View => $component->with($this->props)->render(),
             $component instanceof Component => $component->resolveView()
                 ->with([...$component->data(), ...$this->props])

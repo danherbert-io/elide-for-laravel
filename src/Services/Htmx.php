@@ -13,21 +13,42 @@ use Illuminate\View\View;
 
 class Htmx
 {
+    /**
+     * The root view to be used when returning a full page response.
+     */
     protected string $rootView = 'app';
 
+    /**
+     * The array of categorised callbacks which provide views, components, or partials to be rendered and returned with
+     * the response.
+     *
+     * @var array<RequestKind, array<int, array<callable():(array<int, Partial|View|Component|string>)>>
+     */
     protected array $usingPartials = [
         RequestKind::BOTH->value => [],
         RequestKind::AJAX->value => [],
         RequestKind::NON_AJAX->value => [],
     ];
 
-    /** @var array<Partial|View|Component|string> */
+    /**
+     * Partials, views, or components which will be included in the next response.
+     *
+     * @var array<Partial|View|Component|string>
+     */
     public static array $pendingPartials = [];
 
+    /**
+     * Create a new Htmx service instance.
+     */
     public function __construct(
         public readonly Container $container,
     ) {}
 
+    /**
+     * Set the root view to be used for full page responses.
+     *
+     * @return $this
+     */
     public function rootView(string $view): static
     {
         $this->rootView = $view;
@@ -35,6 +56,12 @@ class Htmx
         return $this;
     }
 
+    /**
+     * Specify a new callable which, when invoked, will return an array of Partials/Views/Components.
+     *
+     * @param  array<callable():(array<int, Partial|View|Component|string>)  $callable
+     * @return $this
+     */
     public function usingPartials(callable $callable, RequestKind $for = RequestKind::BOTH): static
     {
         $this->usingPartials[$for->value][] = $callable;
@@ -42,6 +69,10 @@ class Htmx
         return $this;
     }
 
+    /**
+     * Create an HtmxResponse to send to the frontend. Automatically determines if the response should include a full
+     * page render or just the partials.
+     */
     public function render(
         Partial|View|Component|string $component,
         array $props = [],
@@ -65,6 +96,11 @@ class Htmx
             });
     }
 
+    /**
+     * Specify a Partial/View/Component to be returned with the next response.
+     *
+     * @return $this
+     */
     public function sendWithResponse(Partial|View|Component|string $partial): static
     {
         static::$pendingPartials[] = $partial;
@@ -72,11 +108,17 @@ class Htmx
         return $this;
     }
 
+    /**
+     * Create an instance of a Partial from a View/Component.
+     */
     public function partial(View|Component|string $component, array $props = [], ?string $name = null): Partial
     {
         return Partial::resolveFrom($component, $props, $name);
     }
 
+    /**
+     * Flush and return the current pending partials.
+     */
     public function flushPendingPartials(): array
     {
         $partials = static::$pendingPartials;

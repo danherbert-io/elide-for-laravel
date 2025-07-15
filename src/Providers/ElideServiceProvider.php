@@ -11,14 +11,18 @@ use Illuminate\View\Compilers\BladeCompiler;
 
 class ElideServiceProvider extends ServiceProvider
 {
+    /**
+     * Register the app's services and directives.
+     */
     public function register(): void
     {
         $this->app->singleton(Htmx::class, fn ($app) => new Htmx($app));
         $this->registerBladeDirectives();
     }
 
-    public function boot(): void {}
-
+    /**
+     * Register the Blade directives.
+     */
     protected function registerBladeDirectives(): void
     {
         $this->callAfterResolving('blade.compiler', function (BladeCompiler $blade) {

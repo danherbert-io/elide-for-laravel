@@ -32,7 +32,7 @@ class HtmxRequestTest extends TestCase
     public function test_is_history_store_request(): void
     {
         $request = HtmxRequest::createFrom($this->withHeaders(['HX-History-Restore-Request' => 'true'])->get('/test')->baseRequest);
-        $this->assertTrue($request->isHistoryStoreRequest());
+        $this->assertTrue($request->isHistoryRestoreRequest());
     }
 
     public function test_is_prompt(): void
