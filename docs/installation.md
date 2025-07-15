@@ -12,7 +12,9 @@ composer require danherbert-io/elide
 
 ### Create a root template
 
-Elide needs a root template for rendering a full-page response. By default, this is `/resources/views/app.blade.php`.
+Elide needs a root template for rendering a full-page response. This is comparable to the `resources/views/app.blade.php` file with the Laravel Inertia + React/Vue starter kits.
+
+By default, Elide looks for `/resources/views/app.blade.php`.
 
 It might look something like this:
 
@@ -29,7 +31,13 @@ It might look something like this:
             crossorigin="anonymous"></script>
 </head>
 <body>
-@htmxPartial('content')
+
+    <main>
+    
+        @htmxPartial('content')
+        
+    </main>
+    
 </body>
 </html>
 ```
@@ -61,7 +69,14 @@ return Htmx::render('content.about-us');
 > [!TIP]
 > `Htmx::render()` also accepts `Illuminate\View\Component` class names or objects.
 
+In this example, when someone visits `/about-us` from a fresh page view, the full root template will be returned, and the rendered `view('content.about-us')` will be injected where `@htmxPartial('content')` is. 
+
+Then, if someone has followed a HTMX boosted link to `/about-us`, Elide will detect this and only return the rendered `view('content.about-us')` - HTMX will automatically place this in the right location for you.
 ### That's it!
 
 You now have a route which will return the full HTML markup for a fresh request, or only `view('content.about-us)` for
 HTMX AJAX requests.
+
+### Further reading
+
+* [Digging deeper](./digging-deeper.md)
