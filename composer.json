@@ -57,12 +57,5 @@
     "pint" : "@php vendor/bin/pint",
     "test": "@php vendor/bin/phpunit",
     "facade": "@php vendor/bin/facade.php -- Elide\\\\Htmx"
-  },
-  "repositories": {
-    "facade-documenter": {
-      "type": "vcs",
-      "url": "git@github.com:laravel/facade-documenter.git",
-      "no-api": true
-    }
   }
 }
