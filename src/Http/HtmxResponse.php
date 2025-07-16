@@ -68,7 +68,7 @@ class HtmxResponse implements Responsable
         if ($this->component) {
             $this->partial = Partial::resolveFrom($component, $props, $this->partialName);
         }
-        $this->request = HtmxRequest::createFrom(request());
+        $this->request = app(HtmxRequest::class);
         $this->status($status);
     }
 
