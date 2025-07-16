@@ -20,7 +20,7 @@ The root template is comparable to `resources/views/app.blade.php` when you've s
 
 It should contain all the main structure and "chrome" which surrounds the content.
 
-A barebones example:
+A barebone example:
 
 ```html
 <!doctype html>

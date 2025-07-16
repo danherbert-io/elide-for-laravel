@@ -6,6 +6,9 @@
 
 ## Introduction
 
+> Elide (verb)
+> - _to join different things together as if they are the same; to become joined in this way_
+
 Elide is a small package for use with [Laravel](https://laravel.com/) and [HTMX](https://htmx.org/). It aims to streamline the gap between backend and frontend by making it easy to return full page responses, or just partials (i.e., components). It also provides handy methods of checking HTMX properties of requests and responses.
 
 Strongly inspired by [Inertia](https://github.com/inertiajs/inertia-laravel).
