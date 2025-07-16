@@ -189,7 +189,7 @@ class ToastNotification extends Component implements ComponentSpecifiesSwapStrat
 Htmx::partial(ToastNotification::class);
 ```
 
-The resultant partial HTML fragment might then look like this:
+The resultant partial HTML fragment might then look like this when rendered:
 ```html
 <div id="partial:toast-notification" 
      style="display: contents;" 
@@ -200,18 +200,3 @@ The resultant partial HTML fragment might then look like this:
 
 HTMX would then take the rendered view/component HTML and append that to the end of the `#notifications` element.
 
-
-## Including Partials in your responses
-
-As noted above, Partials are a fragment of HTML. Those fragments are either included as part of a full page response, or can be sent directly to the browser where HTMX will put them in their appropriate places automatically.
-### Responses using `Htmx::render()`
-
-`Htmx::render()` makes it easy to manage non-AJAX and AJAX requests without having to check and change your controller return values - the code in your controller will be the same.
-
-#### Fresh requests - i.e., non-AJAX requests
-
-#### AJAX requests
-
-### Custom responses
-
-HTMX doesn't know or care about Elide. This means that 
