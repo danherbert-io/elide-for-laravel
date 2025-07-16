@@ -49,7 +49,7 @@ If a Partial has been declared which has a matching name (e.g., `'primary-naviga
 The `\Elide\View\Partial` class is a thin wrapper around Laravel `View`s and `Component`s, and is the main "glue" which helps HTMX update the correct parts of the HTML frontend when required.
 
 > [!IMPORTANT]
-> It is important to understand how HTMX's [`hx-swap`](https://htmx.org/attributes/hx-swap/) and [`hx-swap-oob`](https://htmx.org/attributes/hx-swap-oob/) attributes work. They are a crucial part of how Elide's `Partial`s work.
+> It is important to understand how HTMX's [`hx-swap`](https://htmx.org/attributes/hx-swap/) and [`hx-swap-oob`](https://htmx.org/attributes/hx-swap-oob/) HTML attributes work. They are a crucial part of how Elide's `Partial`s dynamically tie into templates and the frontend.
 ### Manually creating a `Partial`
 
 The `HTMX::render(...)` method will take care of instantiating `Partial`s for you in most cases, though there may be times where you may need to do it yourself.
@@ -73,7 +73,7 @@ $partial = Htmx::partial(SiteNavigation::class)
 $partial = Htmx::partial(new SiteNavigation)
 ```
 
-`Partial`s must have a name with which they can be referred to, usually by `@htmxPartial()`. The `Htmx::partial(...)` method will automatically determine a name for you, though you can also specify one yourself:
+`Partial`s must have a name with which they can be referred to, usually by `@htmxPartial()` in a Blade template. The `Htmx::partial(...)` method will automatically determine a name from the `View`/`Component`, though you can also specify one yourself:
 
 ```php
 use Elide\View\Partial;
@@ -148,7 +148,7 @@ There are two ways you can define an alternate swap strategy:
 1. Instantiating a `Partial` explicitly
 2. Updating your Blade `Component` to define a swap strategy
 
-If you define an alternate strategy, the value should comply with HTMX's `hx-swap` attribute values: https://htmx.org/attributes/hx-swap/
+If you define an alternate strategy, the value should comply with HTMX's `hx-swap` attribute values. Consult HTMX's documentation for more details: https://htmx.org/attributes/hx-swap/
 #### 1. Instantiating a `Partial` with a custom swap strategy
 
 ```php
@@ -170,6 +170,7 @@ You may specify an alternate strategy by updating your `Component` to implement 
 For example:
 
 ```php
+use Elide\Htmx;
 use Elide\Contracts\ComponentSpecifiesSwapStrategy;  
 use Illuminate\View\Component;  
   
@@ -182,6 +183,10 @@ class ToastNotification extends Component implements ComponentSpecifiesSwapStrat
 	}
 
 }
+
+// ...
+
+Htmx::partial(ToastNotification::class);
 ```
 
 The resultant partial HTML fragment might then look like this:

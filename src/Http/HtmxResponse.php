@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Elide\Http;
 
-use Elide\Enums\HtmxTrigger;
+use Elide\Enums\HtmxTriggerTiming;
 use Elide\View\Partial;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\ResponseTrait;
@@ -218,7 +218,7 @@ class HtmxResponse implements Responsable
     /**
      * Specify to HTMX that the page should be refreshed.
      *
-     * @see https://htmx.org/headers/hx-replace-url/
+     * @see https://htmx.org/headers/hx-refresh/
      */
     public function refresh(): static
     {
@@ -280,7 +280,7 @@ class HtmxResponse implements Responsable
      *
      * @see https://htmx.org/headers/hx-trigger/
      */
-    public function trigger(string|array $event, HtmxTrigger $when = HtmxTrigger::IMMEDIATELY): static
+    public function trigger(string|array $event, HtmxTriggerTiming $when = HtmxTriggerTiming::IMMEDIATELY): static
     {
         $this->headers->set(
             $when->header(),

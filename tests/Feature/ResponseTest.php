@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Feature;
 
-use Elide\Enums\HtmxTrigger;
+use Elide\Enums\HtmxTriggerTiming;
 use Elide\Enums\RequestKind;
 use Elide\Htmx;
 use Elide\Http\HtmxResponse;
@@ -23,7 +23,11 @@ class ResponseTest extends TestCase
         Htmx::rootView('test::app');
 
         Route::get('test', function () {
-            return Htmx::render(TestComponent::class);
+            $propValue = request()->get('prop');
+
+            return Htmx::render(TestComponent::class, props: [
+                'prop' => $propValue,
+            ]);
         });
     }
 
@@ -53,6 +57,45 @@ class ResponseTest extends TestCase
         $response->assertStatus(200);
 
         $partial = Htmx::partial(TestComponent::class, name: 'content')->render();
+        $content = trim($response->getContent());
+
+        $this->assertSame($content, $partial);
+    }
+
+    public function test_it_returns_full_response_with_prop_value(): void
+    {
+        $response = $this->get('test?prop=123');
+        $response->assertStatus(200);
+
+        $content = trim($response->getContent());
+
+        $partial = Htmx::partial(
+            TestComponent::class,
+            props: ['prop' => '123'],
+            name: 'content',
+        )->render();
+
+        $this->assertStringStartsWith('<html>', $content);
+        $this->assertStringEndsWith('</html>', $content);
+
+        $this->assertStringContainsString($partial, $content);
+    }
+
+    public function test_it_returns_partial_only_response_with_prop_value(): void
+    {
+        $response = $this
+            ->withHeaders([
+                'HX-Request' => 'true',
+            ])
+            ->get('test?prop=123');
+
+        $response->assertStatus(200);
+
+        $partial = Htmx::partial(
+            TestComponent::class,
+            props: ['prop' => '123'],
+            name: 'content',
+        )->render();
         $content = trim($response->getContent());
 
         $this->assertSame($content, $partial);
@@ -238,7 +281,7 @@ class ResponseTest extends TestCase
 
     public function test_it_triggers_simple_events(): void
     {
-        foreach (HtmxTrigger::cases() as $when) {
+        foreach (HtmxTriggerTiming::cases() as $when) {
             $response = (new HtmxResponse)
                 ->trigger('the-event from:body', $when)
                 ->toResponse(request());
@@ -251,7 +294,7 @@ class ResponseTest extends TestCase
         $event = [
             'show-message' => 'The message',
         ];
-        foreach (HtmxTrigger::cases() as $when) {
+        foreach (HtmxTriggerTiming::cases() as $when) {
             $response = (new HtmxResponse)
                 ->trigger($event, $when)
                 ->toResponse(request());
@@ -268,7 +311,7 @@ class ResponseTest extends TestCase
                 'target' => '#the-element',
             ],
         ];
-        foreach (HtmxTrigger::cases() as $when) {
+        foreach (HtmxTriggerTiming::cases() as $when) {
             $response = (new HtmxResponse)
                 ->trigger($event, $when)
                 ->toResponse(request());
@@ -343,7 +386,30 @@ class ResponseTest extends TestCase
         Htmx::sendWithResponse([app()]);
     }
 
+    public function test_it_renders_string_view_with_provided_props(): void
+    {
+        $result = Htmx::partial(
+            'test::test-component',
+            props: [
+                'prop' => '123',
+            ]
+        )->render();
+
+        $this->assertStringContainsString('Prop value: 123', $result);
+    }
+
     public function test_it_renders_with_traditional_view_props(): void
+    {
+        $result = Htmx::partial(
+            view('test::test-component', [
+                'prop' => '123',
+            ])
+        )->render();
+
+        $this->assertStringContainsString('Prop value: 123', $result);
+    }
+
+    public function test_it_renders_with_traditional_view_with_props(): void
     {
         $result = Htmx::partial(
             view('test::test-component')->with([

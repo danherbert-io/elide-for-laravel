@@ -6,14 +6,32 @@
 
 ## Introduction
 
-Elide is a small package for use with [Laravel](https://laravel.com/) and [HTMX](https://htmx.org/). It aims to streamline the gap between backend and frontend by making it easier to return full page responses, or just necessary partials (i.e., components). It also provides handy methods of checking HTMX properties of requests and responses.
+Elide is a small package for use with [Laravel](https://laravel.com/) and [HTMX](https://htmx.org/). It aims to streamline the gap between backend and frontend by making it easy to return full page responses, or just partials (i.e., components). It also provides handy methods of checking HTMX properties of requests and responses.
 
 Strongly inspired by [Inertia](https://github.com/inertiajs/inertia-laravel).
 
-Elide is open-source software licensed under the MIT licence.
+```php
+use Elide\Htmx;
+use App\Models\Product;
+use App\View\Components\Content\ProductDetails;
+use App\View\Components\Ui\ToastNotification;
+
+class ViewProductController {
+    public function __invoke(Product $product) {
+        if (wasAddedToCart($product)) {
+            Htmx::sendWithResponse(new ToastNotification('Added to cart!'));
+        }
+        
+        return Htmx::render(new ProductDetails($product));
+    }
+}
+```
 
 > [!IMPORTANT]
-> We're still writing Elide's documentation. In addition to documentation, you can check out the demonstration site: https://github.com/danherbert-io/elide-demo-site
+> We're still writing Elide's documentation. For a practical example/reference you can check out the demonstration site: https://github.com/danherbert-io/elide-demo-site
+
+
+Elide is open-source software licensed under the MIT licence.
 
 ## Documentation
 
@@ -23,13 +41,16 @@ Elide is open-source software licensed under the MIT licence.
 
 * [Quickstart](./docs/quickstart.md)
 
+
 * [Requirements](./docs/requirements.md)
 * [Installation](./docs/installation.md)
 * [Digging deeper](./docs/digging-deeper.md)
 
-## Quick start
 
+* [Guides/Recipes](./docs/guides-recipes.md)
 
-## Other Laravel+HTMX resources
+## Other resources
 
 * Maurizio's [Laravel HTMX](https://github.com/mauricius/laravel-htmx) package
+* [HTMX](https://htmx.org/)
+* [ThePrimeagen's intro to HTMX](https://www.youtube.com/watch?v=x7v6SNIgJpE) (it's for Golang, but still a great introduction to HTMX)
