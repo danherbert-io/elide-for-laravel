@@ -9,6 +9,8 @@ use Elide\View\Partial;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\ResponseTrait;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\View as IlluminateView;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -142,7 +144,9 @@ class HtmxResponse implements Responsable
             $props['title'] = $this->title;
         }
 
-        return \Illuminate\Support\Facades\Response::view(
+        IlluminateView::share($props);
+
+        return Response::view(
             $this->rootView,
             $props,
             status: $this->status,
