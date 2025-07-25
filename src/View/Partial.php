@@ -6,6 +6,8 @@ namespace Elide\View;
 
 use Elide\Contracts\ComponentSpecifiesSwapStrategy;
 use Elide\Contracts\ProvidesPartialName;
+use Elide\Http\HtmxRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\View\Component;
 use Illuminate\View\View;
@@ -89,12 +91,20 @@ class Partial
             ? $component->swapStrategy()
             : (is_bool($this->swapOob) ? ($this->swapOob ? 'true' : 'false') : $this->swapOob);
 
+        // Don't make a request for _every_ partial....
+        $isHtmxRequest = Cache::driver('array')->rememberForever(
+            'is-htmx-request',
+            function () {
+                return app(HtmxRequest::class)->isHtmxRequest();
+            }
+        );
+
         return sprintf(
-            '<%1$s id="partial:%2$s" style="display: contents;" hx-swap-oob="%4$s">%3$s</%1$s>',
+            '<%1$s id="partial:%2$s" style="display: contents;"%4$s>%3$s</%1$s>',
             e($this->enclosingTagName),
             e($this->name),
             $content,
-            e($swapTarget),
+            $isHtmxRequest ? sprintf(' hx-swap-oob="%s"', e($swapTarget)) : '',
         );
     }
 }

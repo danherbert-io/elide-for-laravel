@@ -70,8 +70,19 @@ class PartialTest extends TestCase
         $this->assertStringContainsString('id="partial:test-component"', $content);
     }
 
+    public function test_it_defines_no_swap_strategy_when_not_htmx_request(): void
+    {
+        $content = Htmx::partial('test::test-component')->render();
+
+        $this->assertStringNotContainsString('hx-swap-oob', $content);
+    }
+
     public function test_it_uses_default_swap_strategy(): void
     {
+        $request = app('request');
+        $request->headers->set('HX-Request', 'true');
+        app()->instance('request', $request);
+
         $content = Htmx::partial('test::test-component')->render();
 
         $this->assertStringContainsString('hx-swap-oob="true"', $content);
@@ -79,6 +90,10 @@ class PartialTest extends TestCase
 
     public function test_it_uses_specified_swap_strategy(): void
     {
+        $request = app('request');
+        $request->headers->set('HX-Request', 'true');
+        app()->instance('request', $request);
+
         $content = Htmx::partial(TestSpecifiedSwapTargetComponent::class)->render();
 
         $strategy = (new TestSpecifiedSwapTargetComponent)->swapStrategy();
