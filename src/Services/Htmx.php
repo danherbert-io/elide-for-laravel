@@ -60,7 +60,7 @@ class Htmx
     /**
      * Specify a new callable which, when invoked, will return an array of Partials/Views/Components.
      *
-     * @param  array<callable():(array<int, Partial|View|Component|string>)  $callable
+     * @param  callable():(array<int, Partial|View|Component|string>)  $callable
      * @return $this
      */
     public function usingPartials(callable $callable, RequestKind $for = RequestKind::BOTH): static

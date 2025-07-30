@@ -58,6 +58,7 @@
     "prepare": "@php vendor/bin/testbench package:discover --ansi",
     "pint": "@php vendor/bin/pint",
     "test": "@php vendor/bin/phpunit",
-    "facade": "@php vendor/bin/facade.php -- Elide\\\\Htmx"
+    "facade": "@php vendor/bin/facade.php -- Elide\\\\Htmx",
+    "clear": "@php vendor/bin/testbench view:clear"
   }
 }
