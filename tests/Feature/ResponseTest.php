@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 use InvalidArgumentException;
 use Tests\TestCase;
 use Workbench\App\View\Components\AlternateTestComponent;
+use Workbench\App\View\Components\PartialNesting\ChildComponentComponent;
+use Workbench\App\View\Components\PartialNesting\ParentComponentComponent;
 use Workbench\App\View\Components\TestComponent;
 
 class ResponseTest extends TestCase
@@ -29,6 +31,20 @@ class ResponseTest extends TestCase
                 'prop' => $propValue,
             ]);
         });
+
+        Route::get('nested-partials-with-using', function () {
+            return Htmx::render(ParentComponentComponent::class)->usingPartials(fn () => [
+                ChildComponentComponent::class,
+            ]);
+        });
+
+        Route::get('nested-partials-with-send', function () {
+            Htmx::sendWithResponse(ChildComponentComponent::class);
+
+            return Htmx::render(ParentComponentComponent::class);
+        });
+
+        $this->withoutExceptionHandling();
     }
 
     public function test_it_returns_full_response(): void
@@ -461,5 +477,51 @@ class ResponseTest extends TestCase
         )->render();
 
         $this->assertStringContainsString('Prop value: 123', $result);
+    }
+
+    public function test_it_sends_nested_partials_provided_via_using_with_full_response(): void
+    {
+        $response = $this->get('nested-partials-with-using');
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('[the parent component]', $content, 'missing parent component');
+        $this->assertStringContainsString('[the child component]', $content, 'missing child component');
+    }
+
+    public function test_it_sends_nested_partials_provided_via_send_with_response_with_full_response(): void
+    {
+        $response = $this->get('nested-partials-with-send');
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('[the parent component]', $content, 'missing parent component');
+        $this->assertStringContainsString('[the child component]', $content, 'missing child component');
+    }
+
+    public function test_it_sends_nested_partials_provided_via_using_with_partials_response(): void
+    {
+        $response = $this
+            ->withHeaders([
+                'HX-Request' => 'true',
+            ])
+            ->get('nested-partials-with-using');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('[the parent component]', $content, 'missing parent component');
+        $this->assertStringContainsString('[the child component]', $content, 'missing child component');
+    }
+
+    public function test_it_sends_nested_partials_provided_via_send_with_response_with_partials_response(): void
+    {
+        $response = $this
+            ->withHeaders([
+                'HX-Request' => 'true',
+            ])
+            ->get('nested-partials-with-send');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('[the parent component]', $content, 'missing parent component');
+        $this->assertStringContainsString('[the child component]', $content, 'missing child component');
     }
 }

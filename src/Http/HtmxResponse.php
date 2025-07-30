@@ -100,6 +100,8 @@ class HtmxResponse implements Responsable
      */
     public function toResponse($request)
     {
+        $sharedProps = ['partials' => []];
+
         /** @var Collection $partials */
         $partials =
             collect($this->usingPartials)
@@ -110,7 +112,15 @@ class HtmxResponse implements Responsable
                     $collection->push($this->partial);
                 })
                 ->groupBy(fn (Partial $partial) => $partial->name)
-                ->map(fn (Collection $group) => $group->map->render());
+                ->map(function (Collection $group, string $key) use (&$sharedProps) {
+                    $renderedGroup = $group->map->render()->join("\n");
+                    $sharedProps['partials'][$key] = $renderedGroup;
+
+                    // Progressively share rendered partials for upcoming components/partials to be rendered.
+                    IlluminateView::share($sharedProps);
+
+                    return $renderedGroup;
+                });
 
         if ($this->request->isHtmxRequest()) {
             return response(
@@ -136,19 +146,15 @@ class HtmxResponse implements Responsable
             );
         }
 
-        $partials = $partials->map(fn (Collection $group) => $group->join("\n"));
-
-        $props = ['partials' => $partials->toArray()];
-
         if ($this->title) {
-            $props['title'] = $this->title;
+            $sharedProps['title'] = $this->title;
         }
 
-        IlluminateView::share($props);
+        IlluminateView::share($sharedProps);
 
         return Response::view(
             $this->rootView,
-            $props,
+            $sharedProps,
             status: $this->status,
             headers: $this->headers->all(),
         );
