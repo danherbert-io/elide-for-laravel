@@ -146,17 +146,15 @@ class HtmxResponse implements Responsable
             );
         }
 
-        $props = ['partials' => $partials->toArray()];
-
         if ($this->title) {
-            $props['title'] = $this->title;
+            $sharedProps['title'] = $this->title;
         }
 
-        IlluminateView::share($props);
+        IlluminateView::share($sharedProps);
 
         return Response::view(
             $this->rootView,
-            $props,
+            $sharedProps,
             status: $this->status,
             headers: $this->headers->all(),
         );
