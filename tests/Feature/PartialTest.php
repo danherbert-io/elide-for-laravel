@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Feature;
 
+use Elide\Enums\Headers;
 use Elide\Htmx;
 use Tests\TestCase;
 use Workbench\App\View\Components\TestComponent;
@@ -100,5 +101,37 @@ class PartialTest extends TestCase
         $expected = sprintf('hx-swap-oob="%s"', $strategy);
 
         $this->assertStringContainsString($expected, $content);
+    }
+
+    public function test_it_includes_partial_id_header(): void
+    {
+        $request = app('request');
+        $request->headers->set('HX-Request', 'true');
+        app()->instance('request', $request);
+
+        $partial = Htmx::partial('test::test-component');
+
+        $attributeValue = e(json_encode([Headers::ELIDE_PARTIAL_ID->value => $partial->name]));
+        $attribute = sprintf('hx-headers="%s"', $attributeValue);
+        $content = $partial->render();
+
+        $this->assertStringContainsString($attribute, $content);
+    }
+
+    public function test_it_includes_partial_id_header_when_partial_name_is_custom(): void
+    {
+        $request = app('request');
+        $request->headers->set('HX-Request', 'true');
+        app()->instance('request', $request);
+
+        $customName = 'custom-partial-name';
+        $partial = Htmx::partial('test::test-component', name: $customName);
+
+        $attributeValue = e(json_encode([Headers::ELIDE_PARTIAL_ID->value => $partial->name]));
+        $attribute = sprintf('hx-headers="%s"', $attributeValue);
+        $content = $partial->render();
+
+        $this->assertStringContainsString($customName, $attribute);
+        $this->assertStringContainsString($attribute, $content);
     }
 }

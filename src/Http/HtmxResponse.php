@@ -55,6 +55,11 @@ class HtmxResponse implements Responsable
     protected ?string $title = null;
 
     /**
+     * Whether the response should only return the origin Partial if it was provided.
+     */
+    protected bool $scopeToRequestingPartial = false;
+
+    /**
      * Instantiate a new HTMX Response.
      */
     public function __construct(
@@ -81,7 +86,7 @@ class HtmxResponse implements Responsable
      */
     public function status(int $code): static
     {
-        if (! array_key_exists($code, SymfonyResponse::$statusTexts)) {
+        if (!array_key_exists($code, SymfonyResponse::$statusTexts)) {
             throw new \InvalidArgumentException(sprintf(
                 'Provided code "%s" is not a valid HTTP status code.',
                 $code,
@@ -105,13 +110,13 @@ class HtmxResponse implements Responsable
         /** @var Collection $partials */
         $partials =
             collect($this->usingPartials)
-                ->map(fn (callable $partial) => $partial())
+                ->map(fn(callable $partial) => $partial())
                 ->flatten(1)
-                ->map(fn (Partial|View|Component|string $partial) => Partial::resolveFrom($partial))
+                ->map(fn(Partial|View|Component|string $partial) => Partial::resolveFrom($partial))
                 ->when($this->component, function (Collection $collection) {
                     $collection->push($this->partial);
                 })
-                ->groupBy(fn (Partial $partial) => $partial->name)
+                ->groupBy(fn(Partial $partial) => $partial->name)
                 ->map(function (Collection $group, string $key) use (&$sharedProps) {
                     $renderedGroup = $group->map->render()->join("\n");
                     $sharedProps['partials'][$key] = $renderedGroup;
@@ -123,6 +128,13 @@ class HtmxResponse implements Responsable
                 });
 
         if ($this->request->isHtmxRequest()) {
+            if ($this->scopeToRequestingPartial && $partials->has($partialId = $this->request->partialId())) {
+                // @TODO Consider if we can optimise how we isolate these islands. Nested partials necessitate that we
+                //       need to still render all partials, even though we're scoping down to a single one for the
+                //       response.
+                $partials = $partials->only($partialId);
+            }
+
             return response(
                 content: $partials
                     ->when($this->title, function (Collection $collection) {
@@ -138,7 +150,7 @@ class HtmxResponse implements Responsable
             );
         }
 
-        if (! $this->component) {
+        if (!$this->component) {
             return response(
                 content: null,
                 status: $this->status,
@@ -296,6 +308,17 @@ class HtmxResponse implements Responsable
             $when->header(),
             is_string($event) ? $event : json_encode($event),
         );
+
+        return $this;
+    }
+
+    /**
+     * Specify if the response should be scoped to the requesting partial, if the request is a HTMX request and an
+     * originating Partial was specified. If no matching partial is provided, the full set will be returned.
+     */
+    public function scopeToRequestingPartial(bool $shouldScope = true): static
+    {
+        $this->scopeToRequestingPartial = $shouldScope;
 
         return $this;
     }

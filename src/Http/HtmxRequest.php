@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Elide\Http;
 
+use Elide\Enums\Headers;
 use Illuminate\Http\Request;
 
 class HtmxRequest extends Request
@@ -72,6 +73,10 @@ class HtmxRequest extends Request
         return $this->header('HX-Trigger');
     }
 
+    public function partialId(): ?string {
+        return $this->header(Headers::ELIDE_PARTIAL_ID->value);
+    }
+
     /**
      * The HTMX properties of the request.
      */
@@ -86,6 +91,7 @@ class HtmxRequest extends Request
             'target' => $this->target(),
             'triggerName' => $this->triggerName(),
             'trigger' => $this->trigger(),
+            'elidePartialId' => $this->partialId(),
         ];
     }
 }
