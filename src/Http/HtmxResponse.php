@@ -55,9 +55,10 @@ class HtmxResponse implements Responsable
     protected ?string $title = null;
 
     /**
-     * Whether the response should only return the origin Partial if it was provided.
+     * Whether the response should only return the origin Partial if it was provided. Either is boolean, or an array
+     * of accepted partial IDs.
      */
-    protected bool $scopeToRequestingPartial = false;
+    protected bool|array $scopeToRequestingPartial = false;
 
     /**
      * Instantiate a new HTMX Response.
@@ -128,11 +129,17 @@ class HtmxResponse implements Responsable
                 });
 
         if ($this->request->isHtmxRequest()) {
-            if ($this->scopeToRequestingPartial && $partials->has($partialId = $this->request->partialId())) {
-                // @TODO Consider if we can optimise how we isolate these islands. Nested partials necessitate that we
-                //       need to still render all partials, even though we're scoping down to a single one for the
-                //       response.
-                $partials = $partials->only($partialId);
+            // @TODO Consider if we can optimise how we isolate these islands. Nested partials necessitate that we
+            //       need to still render all partials, even though we're scoping down to a single one for the
+            //       response.
+            if ($this->scopeToRequestingPartial) {
+                $partialId = $this->request->partialId();
+                $viable = ! is_array($this->scopeToRequestingPartial) ||
+                    in_array($partialId, $this->scopeToRequestingPartial);
+
+                if ($viable && $partials->has($partialId)) {
+                    $partials = $partials->only($partialId);
+                }
             }
 
             return response(
@@ -316,8 +323,19 @@ class HtmxResponse implements Responsable
      * Specify if the response should be scoped to the requesting partial, if the request is a HTMX request and an
      * originating Partial was specified. If no matching partial is provided, the full set will be returned.
      */
-    public function scopeToRequestingPartial(bool $shouldScope = true): static
+    public function scopeToRequestingPartial(bool|array $shouldScope = true): static
     {
+        if (is_array($shouldScope)) {
+            $shouldScope = collect($shouldScope)
+                ->map(fn ($item) => is_string($item) ? trim($item) : null)
+                ->filter()
+                ->toArray();
+
+            if (! count($shouldScope)) {
+                $shouldScope = false;
+            }
+        }
+
         $this->scopeToRequestingPartial = $shouldScope;
 
         return $this;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Feature;
 
+use Elide\Enums\Headers;
 use Elide\Enums\HtmxTriggerTiming;
 use Elide\Enums\RequestKind;
 use Elide\Htmx;
@@ -15,6 +16,7 @@ use Workbench\App\View\Components\AlternateTestComponent;
 use Workbench\App\View\Components\PartialNesting\ChildComponentComponent;
 use Workbench\App\View\Components\PartialNesting\ParentComponentComponent;
 use Workbench\App\View\Components\TestComponent;
+use Workbench\App\View\Components\TestWithProvidedNameComponent;
 
 class ResponseTest extends TestCase
 {
@@ -44,6 +46,27 @@ class ResponseTest extends TestCase
             return Htmx::render(ParentComponentComponent::class);
         });
 
+        Route::get('scoped-partials', function () {
+            return Htmx::render(TestComponent::class)->usingPartials(fn () => [
+                AlternateTestComponent::class,
+                TestWithProvidedNameComponent::class,
+            ])->scopeToRequestingPartial();
+        });
+
+        Route::get('specific-scoped-partial', function () {
+            return Htmx::render(TestComponent::class)->usingPartials(fn () => [
+                AlternateTestComponent::class,
+                TestWithProvidedNameComponent::class,
+            ])->scopeToRequestingPartial(['test-with-provided-name-component']);
+        });
+
+        Route::get('multiple-specific-scoped-partial', function () {
+            return Htmx::render(TestComponent::class)->usingPartials(fn () => [
+                AlternateTestComponent::class,
+                TestWithProvidedNameComponent::class,
+            ])->scopeToRequestingPartial(['alternate-test-component', 'test-with-provided-name-component']);
+        });
+
         $this->withoutExceptionHandling();
     }
 
@@ -66,7 +89,7 @@ class ResponseTest extends TestCase
     {
         $response = $this
             ->withHeaders([
-                'HX-Request' => 'true',
+                Headers::HTMX_REQUEST->value => 'true',
             ])
             ->get('test');
 
@@ -101,7 +124,7 @@ class ResponseTest extends TestCase
     {
         $response = $this
             ->withHeaders([
-                'HX-Request' => 'true',
+                Headers::HTMX_REQUEST->value => 'true',
             ])
             ->get('test?prop=123');
 
@@ -123,7 +146,7 @@ class ResponseTest extends TestCase
             'alternate-test-component' => Htmx::partial(AlternateTestComponent::class),
         ]);
 
-        $response = $this->withHeaders(['HX-Request' => 'true'])->get('test');
+        $response = $this->withHeaders([Headers::HTMX_REQUEST->value => 'true'])->get('test');
 
         $response->assertStatus(200);
 
@@ -153,7 +176,7 @@ class ResponseTest extends TestCase
 
         $this->assertStringNotContainsString($ajaxPartial, $content);
 
-        $response = $this->withHeaders(['HX-Request' => 'true'])->get('test');
+        $response = $this->withHeaders([Headers::HTMX_REQUEST->value => 'true'])->get('test');
         $response->assertStatus(200);
 
         $content = trim($response->getContent());
@@ -176,7 +199,7 @@ class ResponseTest extends TestCase
 
         $this->assertStringContainsString($ajaxPartial, $content);
 
-        $response = $this->withHeaders(['HX-Request' => 'true'])->get('test');
+        $response = $this->withHeaders([Headers::HTMX_REQUEST->value => 'true'])->get('test');
         $response->assertStatus(200);
 
         $content = trim($response->getContent());
@@ -199,7 +222,7 @@ class ResponseTest extends TestCase
 
         $this->assertStringContainsString($ajaxPartial, $content);
 
-        $response = $this->withHeaders(['HX-Request' => 'true'])->get('test');
+        $response = $this->withHeaders([Headers::HTMX_REQUEST->value => 'true'])->get('test');
         $response->assertStatus(200);
 
         $content = trim($response->getContent());
@@ -344,7 +367,7 @@ class ResponseTest extends TestCase
 
         $response = $this
             ->withHeaders([
-                'HX-Request' => 'true',
+                Headers::HTMX_REQUEST->value => 'true',
             ])
             ->get('test');
 
@@ -357,7 +380,7 @@ class ResponseTest extends TestCase
         // As the partial was sent with the previous response, it should not be sent with the following one.
         $response = $this
             ->withHeaders([
-                'HX-Request' => 'true',
+                Headers::HTMX_REQUEST->value => 'true',
             ])
             ->get('test');
 
@@ -501,7 +524,7 @@ class ResponseTest extends TestCase
     {
         $response = $this
             ->withHeaders([
-                'HX-Request' => 'true',
+                Headers::HTMX_REQUEST->value => 'true',
             ])
             ->get('nested-partials-with-using');
 
@@ -515,7 +538,7 @@ class ResponseTest extends TestCase
     {
         $response = $this
             ->withHeaders([
-                'HX-Request' => 'true',
+                Headers::HTMX_REQUEST->value => 'true',
             ])
             ->get('nested-partials-with-send');
 
@@ -523,5 +546,116 @@ class ResponseTest extends TestCase
 
         $this->assertStringContainsString('[the parent component]', $content, 'missing parent component');
         $this->assertStringContainsString('[the child component]', $content, 'missing child component');
+    }
+
+    public function test_it_does_not_scope_down_when_no_partial_specified(): void
+    {
+        $response = $this
+            ->withHeaders([
+                Headers::HTMX_REQUEST->value => 'true',
+            ])
+            ->get('scoped-partials');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringContainsString('id="partial:content"', $content);
+    }
+
+    public function test_it_scopes_down_to_requesting_partial(): void
+    {
+        $response = $this
+            ->withHeaders([
+                Headers::HTMX_REQUEST->value => 'true',
+                Headers::ELIDE_PARTIAL_ID->value => 'test-with-provided-name-component',
+            ])
+            ->get('scoped-partials');
+
+        $content = $response->getContent();
+
+        $this->assertStringNotContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringNotContainsString('id="partial:content"', $content);
+    }
+
+    public function test_it_does_not_scope_down_when_requesting_partial_is_not_present(): void
+    {
+        $response = $this
+            ->withHeaders([
+                Headers::HTMX_REQUEST->value => 'true',
+                Headers::ELIDE_PARTIAL_ID->value => 'partial-id-not-present',
+            ])
+            ->get('scoped-partials');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringContainsString('id="partial:content"', $content);
+    }
+
+    public function test_it_scopes_down_to_specific_requesting_partial(): void
+    {
+        $response = $this
+            ->withHeaders([
+                Headers::HTMX_REQUEST->value => 'true',
+                Headers::ELIDE_PARTIAL_ID->value => 'test-with-provided-name-component',
+            ])
+            ->get('specific-scoped-partial');
+
+        $content = $response->getContent();
+
+        $this->assertStringNotContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringNotContainsString('id="partial:content"', $content);
+    }
+
+    public function test_it_does_not_scope_when_specific_requesting_partial_not_present(): void
+    {
+        $response = $this
+            ->withHeaders([
+                Headers::HTMX_REQUEST->value => 'true',
+                Headers::ELIDE_PARTIAL_ID->value => 'alternate-test-component',
+            ])
+            ->get('specific-scoped-partial');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringContainsString('id="partial:content"', $content);
+    }
+
+    public function test_it_scopes_down_to_specific_requesting_partial_from_multiple(): void
+    {
+        $response = $this
+            ->withHeaders([
+                Headers::HTMX_REQUEST->value => 'true',
+                Headers::ELIDE_PARTIAL_ID->value => 'test-with-provided-name-component',
+            ])
+            ->get('multiple-specific-scoped-partial');
+
+        $content = $response->getContent();
+
+        $this->assertStringNotContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringNotContainsString('id="partial:content"', $content);
+    }
+
+    public function test_it_does_not_scope_when_specific_requesting_partial_not_present_from_multiple(): void
+    {
+        $response = $this
+            ->withHeaders([
+                Headers::HTMX_REQUEST->value => 'true',
+                Headers::ELIDE_PARTIAL_ID->value => 'how-many-gigawatts',
+            ])
+            ->get('multiple-specific-scoped-partial');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringContainsString('id="partial:content"', $content);
     }
 }
