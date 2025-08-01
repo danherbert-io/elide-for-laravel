@@ -14,7 +14,7 @@ class HtmxRequest extends Request
      */
     public function isBoosted(): bool
     {
-        return $this->hasHeader('HX-Boosted');
+        return $this->hasHeader(Headers::HTMX_BOOSTED->value);
     }
 
     /**
@@ -22,7 +22,7 @@ class HtmxRequest extends Request
      */
     public function currentUrl(): ?string
     {
-        return $this->header('HX-Current-Url');
+        return $this->header(Headers::HTMX_CURRENT_URL->value);
     }
 
     /**
@@ -30,7 +30,7 @@ class HtmxRequest extends Request
      */
     public function isHistoryRestoreRequest(): bool
     {
-        return $this->header('HX-History-Restore-Request') === 'true';
+        return $this->header(Headers::HTMX_HISTORY_RESTORE_REQUEST->value) === 'true';
     }
 
     /**
@@ -38,7 +38,7 @@ class HtmxRequest extends Request
      */
     public function isPrompt(): bool
     {
-        return $this->header('HX-Prompt') === 'true';
+        return $this->header(Headers::HTMX_PROMPT->value) === 'true';
     }
 
     /**
@@ -46,7 +46,7 @@ class HtmxRequest extends Request
      */
     public function isHtmxRequest(): bool
     {
-        return $this->header('HX-Request') === 'true';
+        return $this->header(Headers::HTMX_REQUEST->value) === 'true';
     }
 
     /**
@@ -54,7 +54,7 @@ class HtmxRequest extends Request
      */
     public function target(): ?string
     {
-        return $this->header('HX-Target');
+        return $this->header(Headers::HTMX_TARGET->value);
     }
 
     /**
@@ -62,7 +62,7 @@ class HtmxRequest extends Request
      */
     public function triggerName(): ?string
     {
-        return $this->header('HX-Trigger-Name');
+        return $this->header(Headers::HTMX_TRIGGER_NAME->value);
     }
 
     /**
@@ -70,10 +70,11 @@ class HtmxRequest extends Request
      */
     public function trigger(): ?string
     {
-        return $this->header('HX-Trigger');
+        return $this->header(Headers::HTMX_TRIGGER->value);
     }
 
-    public function partialId(): ?string {
+    public function partialId(): ?string
+    {
         return $this->header(Headers::ELIDE_PARTIAL_ID->value);
     }
 

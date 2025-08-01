@@ -86,7 +86,7 @@ class HtmxResponse implements Responsable
      */
     public function status(int $code): static
     {
-        if (!array_key_exists($code, SymfonyResponse::$statusTexts)) {
+        if (! array_key_exists($code, SymfonyResponse::$statusTexts)) {
             throw new \InvalidArgumentException(sprintf(
                 'Provided code "%s" is not a valid HTTP status code.',
                 $code,
@@ -110,13 +110,13 @@ class HtmxResponse implements Responsable
         /** @var Collection $partials */
         $partials =
             collect($this->usingPartials)
-                ->map(fn(callable $partial) => $partial())
+                ->map(fn (callable $partial) => $partial())
                 ->flatten(1)
-                ->map(fn(Partial|View|Component|string $partial) => Partial::resolveFrom($partial))
+                ->map(fn (Partial|View|Component|string $partial) => Partial::resolveFrom($partial))
                 ->when($this->component, function (Collection $collection) {
                     $collection->push($this->partial);
                 })
-                ->groupBy(fn(Partial $partial) => $partial->name)
+                ->groupBy(fn (Partial $partial) => $partial->name)
                 ->map(function (Collection $group, string $key) use (&$sharedProps) {
                     $renderedGroup = $group->map->render()->join("\n");
                     $sharedProps['partials'][$key] = $renderedGroup;
@@ -150,7 +150,7 @@ class HtmxResponse implements Responsable
             );
         }
 
-        if (!$this->component) {
+        if (! $this->component) {
             return response(
                 content: null,
                 status: $this->status,
