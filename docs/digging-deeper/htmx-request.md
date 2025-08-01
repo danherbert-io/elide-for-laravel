@@ -99,9 +99,22 @@ use Elide\Http\HtmxRequest;
 $trigger = app(HtmxRequest::class)->trigger();
 ```
 
-### `inspect()`
+## Available Elide inspections
 
-Returns an array of all the HTMX related values.
+### `partialId()`
+
+Check which frontend `Partial` triggered the request.
+
+```php
+use Elide\Http\HtmxRequest;
+
+$partialId = app(HtmxRequest::class)->partialId();
+```
+
+
+## Debugging the request with `inspect()`
+
+The `inspect()` method returns an array of all the HTMX related values.
 
 ```php
 use Elide\Http\HtmxRequest;

@@ -6,6 +6,7 @@ namespace Elide\View;
 
 use Elide\Contracts\ComponentSpecifiesSwapStrategy;
 use Elide\Contracts\ProvidesPartialName;
+use Elide\Enums\Headers;
 use Elide\Http\HtmxRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -100,11 +101,12 @@ class Partial
         );
 
         return sprintf(
-            '<%1$s id="partial:%2$s" style="display: contents;"%4$s>%3$s</%1$s>',
+            '<%1$s id="partial:%2$s" hx-headers="%5$s" style="display: contents;"%4$s>%3$s</%1$s>',
             e($this->enclosingTagName),
             e($this->name),
             $content,
             $isHtmxRequest ? sprintf(' hx-swap-oob="%s"', e($swapTarget)) : '',
+            e(json_encode([Headers::ELIDE_PARTIAL_ID->value => $this->name])),
         );
     }
 }

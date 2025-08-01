@@ -55,6 +55,12 @@ class HtmxResponse implements Responsable
     protected ?string $title = null;
 
     /**
+     * Whether the response should only return the origin Partial if it was provided. Either is boolean, or an array
+     * of accepted partial IDs.
+     */
+    protected bool|array $scopeToRequestingPartial = false;
+
+    /**
      * Instantiate a new HTMX Response.
      */
     public function __construct(
@@ -123,6 +129,19 @@ class HtmxResponse implements Responsable
                 });
 
         if ($this->request->isHtmxRequest()) {
+            // @TODO Consider if we can optimise how we isolate these islands. Nested partials necessitate that we
+            //       need to still render all partials, even though we're scoping down to a single one for the
+            //       response.
+            if ($this->scopeToRequestingPartial) {
+                $partialId = $this->request->partialId();
+                $viable = ! is_array($this->scopeToRequestingPartial) ||
+                    in_array($partialId, $this->scopeToRequestingPartial);
+
+                if ($viable && $partials->has($partialId)) {
+                    $partials = $partials->only($partialId);
+                }
+            }
+
             return response(
                 content: $partials
                     ->when($this->title, function (Collection $collection) {
@@ -296,6 +315,38 @@ class HtmxResponse implements Responsable
             $when->header(),
             is_string($event) ? $event : json_encode($event),
         );
+
+        return $this;
+    }
+
+    /**
+     * Specify if the response should be scoped to the requesting partial, if the request is a HTMX request and an
+     * originating Partial was specified. If no matching partial is provided, the full set will be returned.
+     */
+    public function scopeToRequestingPartial(bool|array $shouldScope = true): static
+    {
+        if (is_array($shouldScope)) {
+            $shouldScope = collect($shouldScope)
+                ->map(fn ($item) => is_string($item) ? trim($item) : null)
+                ->filter()
+                ->toArray();
+
+            if (! count($shouldScope)) {
+                $shouldScope = false;
+            }
+        }
+
+        $this->scopeToRequestingPartial = $shouldScope;
+
+        return $this;
+    }
+
+    /**
+     * Disable scoping to the requested partial.
+     */
+    public function doNotScopeToRequestingPartial(): static
+    {
+        $this->scopeToRequestingPartial(false);
 
         return $this;
     }
