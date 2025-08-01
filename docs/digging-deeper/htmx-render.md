@@ -95,3 +95,10 @@ if (cartWasUpdated()) {
   
 Htmx::render(ProductDetails::class, props: ['product' => $product]);
 ```
+
+## Scoping the response to specific partials
+
+Elide can automatically detect which partial an HTMX AJAX request came from, and optionally scope down to return just that partial.
+
+See [`Htmx::Response` - Scoping the response to specific partials](htmx-response.md#Scoping%20the%20response%20to%20specific%20partials)
+

@@ -340,4 +340,14 @@ class HtmxResponse implements Responsable
 
         return $this;
     }
+
+    /**
+     * Disable scoping to the requested partial.
+     */
+    public function doNotScopeToRequestingPartial(): static
+    {
+        $this->scopeToRequestingPartial(false);
+
+        return $this;
+    }
 }

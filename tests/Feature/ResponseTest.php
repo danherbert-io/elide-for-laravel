@@ -9,6 +9,7 @@ use Elide\Enums\HtmxTriggerTiming;
 use Elide\Enums\RequestKind;
 use Elide\Htmx;
 use Elide\Http\HtmxResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use InvalidArgumentException;
 use Tests\TestCase;
@@ -65,6 +66,21 @@ class ResponseTest extends TestCase
                 AlternateTestComponent::class,
                 TestWithProvidedNameComponent::class,
             ])->scopeToRequestingPartial(['alternate-test-component', 'test-with-provided-name-component']);
+        });
+
+        Route::get('toggle-scoping', function (Request $request) {
+            $disableScoping = $request->boolean('disable-scoping');
+
+            $response = Htmx::render(TestComponent::class)->usingPartials(fn () => [
+                AlternateTestComponent::class,
+                TestWithProvidedNameComponent::class,
+            ])->scopeToRequestingPartial();
+
+            if ($disableScoping) {
+                $response->doNotScopeToRequestingPartial();
+            }
+
+            return $response;
         });
 
         $this->withoutExceptionHandling();
@@ -651,6 +667,35 @@ class ResponseTest extends TestCase
                 Headers::ELIDE_PARTIAL_ID->value => 'how-many-gigawatts',
             ])
             ->get('multiple-specific-scoped-partial');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringContainsString('id="partial:content"', $content);
+    }
+
+    public function test_scoping_can_be_disabled(): void
+    {
+        $response = $this
+            ->withHeaders([
+                Headers::HTMX_REQUEST->value => 'true',
+                Headers::ELIDE_PARTIAL_ID->value => 'alternate-test-component',
+            ])
+            ->get('toggle-scoping');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringNotContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringNotContainsString('id="partial:content"', $content);
+
+        $response = $this
+            ->withHeaders([
+                Headers::HTMX_REQUEST->value => 'true',
+                Headers::ELIDE_PARTIAL_ID->value => 'alternate-test-component',
+            ])
+            ->get('toggle-scoping?disable-scoping=true');
 
         $content = $response->getContent();
 
