@@ -1,6 +1,10 @@
 
 # Changelog
 
+## [v1.0.9](https://github.com/danherbert-io/elide-for-laravel/compare/v1.0.8...v1.0.9) - 2025-08-15
+
+Add a `filteringPartials()` method to the `HtmxResponse` object, so that partials can be filtered for HTMX responses.
+
 ## [v1.0.8](https://github.com/danherbert-io/elide-for-laravel/compare/v1.0.7...v1.0.8) - 2025-08-01
 
 Update partials to define a `hx-headers="{'X-Elide-Partial-Id':...'}""` attribute, and provide methods to `HtmxResponse`, so that responses can be easily scoped to specific partials.
