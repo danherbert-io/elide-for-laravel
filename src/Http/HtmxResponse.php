@@ -28,6 +28,13 @@ class HtmxResponse implements Responsable
     protected array $usingPartials = [];
 
     /**
+     * An array of callables which will filter the Partials which will be returned with the response.
+     *
+     * @var array<callable(string, string):(bool)>
+     */
+    protected array $filteringPartials = [];
+
+    /**
      * The main partial to be rendered with this response.
      */
     protected ?Partial $partial = null;
@@ -129,6 +136,12 @@ class HtmxResponse implements Responsable
                 });
 
         if ($this->request->isHtmxRequest()) {
+            if (count($this->filteringPartials)) {
+                foreach ($this->filteringPartials as $filter) {
+                    $partials = $partials->filter($filter);
+                }
+            }
+
             // @TODO Consider if we can optimise how we isolate these islands. Nested partials necessitate that we
             //       need to still render all partials, even though we're scoping down to a single one for the
             //       response.
@@ -200,6 +213,19 @@ class HtmxResponse implements Responsable
     public function usingPartials(callable $callable): static
     {
         $this->usingPartials[] = $callable;
+
+        return $this;
+    }
+
+    /**
+     * Specify a callable which will be used to filter the partials which will be returned with the response.
+     *
+     * @param  callable(string, string):(bool)  $callable
+     * @return $this
+     */
+    public function filteringPartials(callable $callable): static
+    {
+        $this->filteringPartials[] = $callable;
 
         return $this;
     }

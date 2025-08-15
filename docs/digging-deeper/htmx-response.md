@@ -197,3 +197,17 @@ The transaction table is paginated, and has <kbd>Previous</kbd> and <kbd>Next</k
 Currently, any HTMX AJAX request made to this route will include all specified partials.
 
 Adding `scopeToRequestingPartial()` to the route's response will instruct the route to only return the `AccountTransactionsTable` for the <kbd>Previous</kbd> and <kbd>Next</kbd> links.
+
+## Filtering the returned partials in an HTMX response
+
+Sometimes you may wish to return only specific partials to the frontend. There might be some UI logic or other conditions driving this choice.
+
+In other scenarios returning partials to the frontend when they do not currently exist may trigger some HTMX `htmx:oobErrorNoTarget` errors in the browser console. In particular this may occur when using nested partials. The error usually has no side effects, though it is nice to clean it up.
+
+You can filter the partials which Elide returns for an HTMX response by passing a `Collection` filter callback to the `filteringPartials()` method.
+
+```php
+return Htmx::render(...)->filteringPartials(  
+    fn(string $renderedPartial, string $partialId) => $partialId === 'the-partial-id',  
+);
+```

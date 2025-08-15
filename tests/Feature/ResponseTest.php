@@ -83,6 +83,21 @@ class ResponseTest extends TestCase
             return $response;
         });
 
+        Route::get('filtered-partials', function (Request $request) {
+            $enableFiltering = $request->boolean('enable-filtering');
+
+            $response = Htmx::render(TestComponent::class)->usingPartials(fn () => [
+                AlternateTestComponent::class,
+                TestWithProvidedNameComponent::class,
+            ]);
+
+            if ($enableFiltering) {
+                $response->filteringPartials(fn (string $_, string $id) => $id === 'alternate-test-component');
+            }
+
+            return $response;
+        });
+
         $this->withoutExceptionHandling();
     }
 
@@ -702,5 +717,28 @@ class ResponseTest extends TestCase
         $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
         $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
         $this->assertStringContainsString('id="partial:content"', $content);
+    }
+
+    public function test_it_can_filter_response_partials(): void
+    {
+        $response = $this
+            ->withHeaders([Headers::HTMX_REQUEST->value => 'true'])
+            ->get('filtered-partials');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringContainsString('id="partial:content"', $content);
+
+        $response = $this
+            ->withHeaders([Headers::HTMX_REQUEST->value => 'true'])
+            ->get('filtered-partials?enable-filtering=true');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
+        $this->assertStringNotContainsString('id="partial:test-with-provided-name-component"', $content);
+        $this->assertStringNotContainsString('id="partial:content"', $content);
     }
 }
