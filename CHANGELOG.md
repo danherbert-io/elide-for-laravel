@@ -1,6 +1,10 @@
 
 # Changelog
 
+## [v1.0.10](https://github.com/danherbert-io/elide-for-laravel/compare/v1.0.9...v1.0.10) - 2025-11-18
+
+Update scope reduction to use the filtering mechanic.
+
 ## [v1.0.9](https://github.com/danherbert-io/elide-for-laravel/compare/v1.0.8...v1.0.9) - 2025-08-15
 
 Add a `filteringPartials()` method to the `HtmxResponse` object, so that partials can be filtered for HTMX responses.
