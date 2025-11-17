@@ -136,22 +136,26 @@ class HtmxResponse implements Responsable
                 });
 
         if ($this->request->isHtmxRequest()) {
-            if (count($this->filteringPartials)) {
-                foreach ($this->filteringPartials as $filter) {
-                    $partials = $partials->filter($filter);
-                }
-            }
-
             // @TODO Consider if we can optimise how we isolate these islands. Nested partials necessitate that we
             //       need to still render all partials, even though we're scoping down to a single one for the
             //       response.
             if ($this->scopeToRequestingPartial) {
                 $partialId = $this->request->partialId();
-                $viable = ! is_array($this->scopeToRequestingPartial) ||
-                    in_array($partialId, $this->scopeToRequestingPartial);
 
-                if ($viable && $partials->has($partialId)) {
-                    $partials = $partials->only($partialId);
+                if ($partials->has($partialId)) {
+                    $scopeCandidates = is_array($this->scopeToRequestingPartial)
+                        ? $this->scopeToRequestingPartial
+                        : [$partialId];
+
+                    if (in_array($partialId, $scopeCandidates)) {
+                        $this->filteringPartials(fn ($_, $id) => $id === $partialId);
+                    }
+                }
+            }
+
+            if (count($this->filteringPartials)) {
+                foreach ($this->filteringPartials as $filter) {
+                    $partials = $partials->filter($filter);
                 }
             }
 
@@ -219,6 +223,7 @@ class HtmxResponse implements Responsable
 
     /**
      * Specify a callable which will be used to filter the partials which will be returned with the response.
+     * The first string argument is HTML content, the second is the ID.
      *
      * @param  callable(string, string):(bool)  $callable
      * @return $this
