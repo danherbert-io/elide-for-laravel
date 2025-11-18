@@ -62,10 +62,15 @@ class HtmxResponse implements Responsable
     protected ?string $title = null;
 
     /**
-     * Whether the response should only return the origin Partial if it was provided. Either is boolean, or an array
+     * Whether the response should only return the origin Partial if it was provided. Either is boolean or an array
      * of accepted partial IDs.
      */
     protected bool|array $scopeToRequestingPartial = false;
+
+    /**
+     * Whether the HTMX response should omit individual partials which have been rendered as part of another partial.
+     */
+    protected bool $omitRenderedChildPartials = false;
 
     /**
      * Instantiate a new HTMX Response.
@@ -151,6 +156,10 @@ class HtmxResponse implements Responsable
                         $this->filteringPartials(fn ($_, $id) => $id === $partialId);
                     }
                 }
+            }
+
+            if ($this->omitRenderedChildPartials) {
+                $this->buildOmitRenderedChildPartialsFilter($partials);
             }
 
             if (count($this->filteringPartials)) {
@@ -373,6 +382,16 @@ class HtmxResponse implements Responsable
     }
 
     /**
+     * Specify if the response should omit any partials which have been rendered as part of another partial.
+     */
+    public function omitRenderedChildPartials(bool $shouldOmit = true): static
+    {
+        $this->omitRenderedChildPartials = $shouldOmit;
+
+        return $this;
+    }
+
+    /**
      * Disable scoping to the requested partial.
      */
     public function doNotScopeToRequestingPartial(): static
@@ -380,5 +399,31 @@ class HtmxResponse implements Responsable
         $this->scopeToRequestingPartial(false);
 
         return $this;
+    }
+
+    private function buildOmitRenderedChildPartialsFilter(Collection $partials): void
+    {
+        $partialsCount = $partials->count();
+        $partialKeys = $partials->keys();
+
+        $this->filteringPartials(function ($_, $id) use ($partials, $partialKeys, $partialsCount) {
+            $rendered = false;
+
+            for ($i = 0; $i < $partialsCount; $i++) {
+                $key = $partialKeys[$i];
+                if ($key === $id) {
+                    continue;
+                }
+
+                $partialContent = $partials->get($key);
+
+                if (str_contains($partialContent, sprintf('id="partial:%s"', $id))) {
+                    $rendered = true;
+                    break;
+                }
+            }
+
+            return ! $rendered;
+        });
     }
 }

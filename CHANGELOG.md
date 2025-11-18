@@ -1,6 +1,10 @@
 
 # Changelog
 
+## [v1.1.0](https://github.com/danherbert-io/elide-for-laravel/compare/v1.0.10...v1.1.0) - 2025-11-19
+
+Responses can now omit partials which have been rendered within other partials via the `omitRenderedChildPartials()` method.
+
 ## [v1.0.10](https://github.com/danherbert-io/elide-for-laravel/compare/v1.0.9...v1.0.10) - 2025-11-18
 
 Update scope reduction to use the filtering mechanic.
