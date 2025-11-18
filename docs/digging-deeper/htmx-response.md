@@ -198,13 +198,92 @@ Currently, any HTMX AJAX request made to this route will include all specified p
 
 Adding `scopeToRequestingPartial()` to the route's response will instruct the route to only return the `AccountTransactionsTable` for the <kbd>Previous</kbd> and <kbd>Next</kbd> links.
 
+## Omitting partials which have been rendered within another partial
+
+You may omit partials from the response, when they are included as content of another partial, by calling  `omitRenderedChildPartials()`.
+
+```php
+Htmx::render(...)->omitRenderedChildPartials();
+// or
+Htmx::render(...)->omitRenderedChildPartials(shouldOmit: true);
+```
+
+This is particularly useful when sending users responses which include all new partials. E.g., navigating from a simple content page to a page with a number of form partials.
+
+Omission can be disabled by passing `false`:
+
+```php
+Htmx::render(...)->omitRenderedChildPartials(shouldOmit: false);
+```
+
+### An example
+
+For example, we have a "navigation profile card" partial displayed within the "site navigation" partial.
+
+```php
+use App\View\Components\Page\BankAccountTransactionsPage;
+use App\View\Components\Shared\MainNavigation;
+use App\View\Components\Shared\NavigationProfileCard;
+use Elide\Htmx;
+
+Route::get('transactions', function (BankAccount $bankAccount) {
+    return Htmx::render(BankAccountTransactionsPage::class)
+        ->usingPartials(fn() => [
+            MainNavigation::class,
+            NavigationProfileCard::class,
+        ]);
+});
+```
+
+By default, Elide will return a response which includes both of those partials explicitly. The response might look a little like this:
+
+```html
+
+<div id="partial:navigation-profile-card" ...> ...</div>
+<div id="partial:main-navigation" ...>
+    ...
+    <div id="partial:navigation-profile-card" ...> ...</div>
+    ...
+</div>
+```
+
+You'll spot the "navigation profile card" twice.
+
+We can instruct Elide to omit the explicit "navigation profile card" because it has been rendered within the "site navigation":
+
+```php
+use App\View\Components\Page\BankAccountTransactionsPage;
+use App\View\Components\Shared\MainNavigation;
+use App\View\Components\Shared\NavigationProfileCard;
+use Elide\Htmx;
+
+Route::get('transactions', function (BankAccount $bankAccount) {
+    return Htmx::render(BankAccountTransactionsPage::class)
+        ->usingPartials(fn() => [
+            MainNavigation::class,
+            NavigationProfileCard::class,
+        ])
+        ->omitRenderedChildPartials();
+});
+```
+
+With this applied, the response might look a little like this:
+
+```html
+<div id="partial:main-navigation" ...>
+    ...
+    <div id="partial:navigation-profile-card" ...> ...</div>
+    ...
+</div>
+```
+
 ## Filtering the returned partials in an HTMX response
 
 Sometimes you may wish to return only specific partials to the frontend. There might be some UI logic or other conditions driving this choice.
 
 In other scenarios returning partials to the frontend when they do not currently exist may trigger some HTMX `htmx:oobErrorNoTarget` errors in the browser console. In particular this may occur when using nested partials. The error usually has no side effects, though it is nice to clean it up.
 
-You can filter the partials which Elide returns for an HTMX response by passing a `Collection` filter callback to the `filteringPartials()` method.
+You may filter the partials which Elide returns for an HTMX response by passing a `Collection` filter callback to the `filteringPartials()` method.
 
 ```php
 return Htmx::render(...)->filteringPartials(  

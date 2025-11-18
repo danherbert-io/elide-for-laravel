@@ -98,6 +98,20 @@ class ResponseTest extends TestCase
             return $response;
         });
 
+        Route::get('omit-rendered-child-partials', function (Request $request) {
+            $omit = $request->boolean('omit');
+
+            $response = Htmx::render(ParentComponentComponent::class)->usingPartials(fn () => [
+                ChildComponentComponent::class,
+            ]);
+
+            if ($omit) {
+                $response->omitRenderedChildPartials();
+            }
+
+            return $response;
+        });
+
         $this->withoutExceptionHandling();
     }
 
@@ -740,5 +754,57 @@ class ResponseTest extends TestCase
         $this->assertStringContainsString('id="partial:alternate-test-component"', $content);
         $this->assertStringNotContainsString('id="partial:test-with-provided-name-component"', $content);
         $this->assertStringNotContainsString('id="partial:content"', $content);
+    }
+
+    public function test_it_renders_nested_partials_in_full_response_when_omit_rendered_child_partials_is_false()
+    {
+        $response = $this->get('omit-rendered-child-partials');
+
+        $content = trim($response->getContent());
+
+        $this->assertStringContainsString('</html', $content, 'missing parent component');
+        $this->assertStringContainsString('[the parent component]', $content, 'missing parent component');
+        $this->assertStringContainsString('[the child component]', $content, 'missing child component');
+    }
+
+    public function test_it_renders_nested_partials_in_full_response_when_omit_rendered_child_partials_is_true()
+    {
+        $response = $this->get('omit-rendered-child-partials?omit=true');
+
+        $content = trim($response->getContent());
+
+        $this->assertStringContainsString('</html', $content, 'missing parent component');
+        $this->assertStringContainsString('[the parent component]', $content, 'missing parent component');
+        $this->assertStringContainsString('[the child component]', $content, 'missing child component');
+    }
+
+    public function test_it_does_not_omit_rendered_child_partials_for_htmx_request()
+    {
+        $response = $this
+            ->withHeaders([Headers::HTMX_REQUEST->value => 'true'])
+            ->get('omit-rendered-child-partials');
+
+        $content = trim($response->getContent());
+
+        preg_match_all('`(^|\n)<div id="partial:child-component-component"`', $content, $childMatches);
+        preg_match_all('`(^|\n)<div id="partial:content"`', $content, $contentMatches);
+
+        $this->assertCount(1, $childMatches[0]);
+        $this->assertCount(1, $contentMatches[0]);
+    }
+
+    public function test_it_omits_rendered_child_partials_for_htmx_request()
+    {
+        $response = $this
+            ->withHeaders([Headers::HTMX_REQUEST->value => 'true'])
+            ->get('omit-rendered-child-partials?omit=true');
+
+        $content = trim($response->getContent());
+
+        preg_match_all('`(^|\n)<div id="partial:child-component-component"`', $content, $childMatches);
+        preg_match_all('`(^|\n)<div id="partial:content"`', $content, $contentMatches);
+
+        $this->assertCount(0, $childMatches[0]);
+        $this->assertCount(1, $contentMatches[0]);
     }
 }
