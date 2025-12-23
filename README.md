@@ -52,6 +52,14 @@ Elide is open-source software licensed under the MIT licence.
 
 * [Guides/Recipes](./docs/guides-recipes.md)
 
+## Starter kit
+
+Elide has a simple starter kit to help you get going quickly.
+
+```shell
+laravel new --using=danherbert-io/elide-simple-starter-kit
+```
+
 ## Other resources
 
 * Maurizio's [Laravel HTMX](https://github.com/mauricius/laravel-htmx) package
