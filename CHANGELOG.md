@@ -1,6 +1,10 @@
 
 # Changelog
 
+## [v1.1.1](https://github.com/danherbert-io/elide-for-laravel/compare/v1.1.0...v1.1.1) - 2025-12-23
+
+Responses via `Htmx::render()` can now omit partials which have been rendered within other partials via the service `Htmx::omitRenderedChildPartials()` method.
+
 ## [v1.1.0](https://github.com/danherbert-io/elide-for-laravel/compare/v1.0.10...v1.1.0) - 2025-11-19
 
 Responses can now omit partials which have been rendered within other partials via the `omitRenderedChildPartials()` method.
