@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static \Elide\Services\Htmx rootView(string $view)
  * @method static \Elide\Services\Htmx usingPartials(callable $callable, \Elide\Enums\RequestKind $for = 'both')
+ * @method static \Elide\Services\Htmx omitRenderedChildPartials(bool $shouldOmit = true)
  * @method static \Elide\Http\HtmxResponse render(\Elide\View\Partial|\Illuminate\View\View|\Illuminate\View\Component|string $component, array $props = [], string|null $partialName = 'content')
  * @method static \Elide\Services\Htmx sendWithResponse(\Elide\View\Partial|\Illuminate\View\View|\Illuminate\View\Component|array|string $partial)
  * @method static \Elide\View\Partial partial(\Illuminate\View\View|\Illuminate\View\Component|string $component, array $props = [], string|null $name = null)
