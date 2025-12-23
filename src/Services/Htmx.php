@@ -39,6 +39,11 @@ class Htmx
     public static array $pendingPartials = [];
 
     /**
+     * Whether rendered child partials will be omitted from the Htmx::render() response.
+     */
+    protected bool $shouldOmitRenderedChildPartials = false;
+
+    /**
      * Create a new Htmx service instance.
      */
     public function __construct(
@@ -71,6 +76,20 @@ class Htmx
     }
 
     /**
+     * Specify whether Htmx::render() responses should omit child rendered partials or not.
+     *
+     * @return $this
+     *
+     * @see HtmxResponse::omitRenderedChildPartials()
+     */
+    public function omitRenderedChildPartials(bool $shouldOmit = true): static
+    {
+        $this->shouldOmitRenderedChildPartials = $shouldOmit;
+
+        return $this;
+    }
+
+    /**
      * Create an HtmxResponse to send to the frontend. Automatically determines if the response should include a full
      * page render or just the partials.
      */
@@ -94,7 +113,8 @@ class Htmx
             ->reswap('none')
             ->usingPartials(function () {
                 return $this->flushPendingPartials();
-            });
+            })
+            ->omitRenderedChildPartials($this->shouldOmitRenderedChildPartials);
     }
 
     /**

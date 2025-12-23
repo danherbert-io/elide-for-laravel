@@ -112,6 +112,18 @@ class ResponseTest extends TestCase
             return $response;
         });
 
+        Route::get('omit-rendered-child-partials-via-service-flag', function (Request $request) {
+            $omit = $request->boolean('omit');
+
+            if ($omit) {
+                Htmx::omitRenderedChildPartials();
+            }
+
+            return Htmx::render(ParentComponentComponent::class)->usingPartials(fn () => [
+                ChildComponentComponent::class,
+            ]);
+        });
+
         $this->withoutExceptionHandling();
     }
 
@@ -786,6 +798,8 @@ class ResponseTest extends TestCase
 
         $content = trim($response->getContent());
 
+        // Partials included explicitly will be at the start of a new line - test templates will include space before
+        // the child partial.
         preg_match_all('`(^|\n)<div id="partial:child-component-component"`', $content, $childMatches);
         preg_match_all('`(^|\n)<div id="partial:content"`', $content, $contentMatches);
 
@@ -801,6 +815,42 @@ class ResponseTest extends TestCase
 
         $content = trim($response->getContent());
 
+        // Partials included explicitly will be at the start of a new line - test templates will include space before
+        // the child partial.
+        preg_match_all('`(^|\n)<div id="partial:child-component-component"`', $content, $childMatches);
+        preg_match_all('`(^|\n)<div id="partial:content"`', $content, $contentMatches);
+
+        $this->assertCount(0, $childMatches[0]);
+        $this->assertCount(1, $contentMatches[0]);
+    }
+
+    public function test_it_does_not_omit_rendered_child_partials_via_service_flag_for_htmx_request()
+    {
+        $response = $this
+            ->withHeaders([Headers::HTMX_REQUEST->value => 'true'])
+            ->get('omit-rendered-child-partials-via-service-flag');
+
+        $content = trim($response->getContent());
+
+        // Partials included explicitly will be at the start of a new line - test templates will include space before
+        // the child partial.
+        preg_match_all('`(^|\n)<div id="partial:child-component-component"`', $content, $childMatches);
+        preg_match_all('`(^|\n)<div id="partial:content"`', $content, $contentMatches);
+
+        $this->assertCount(1, $childMatches[0]);
+        $this->assertCount(1, $contentMatches[0]);
+    }
+
+    public function test_it_omits_rendered_child_partials_via_service_flag_for_htmx_request()
+    {
+        $response = $this
+            ->withHeaders([Headers::HTMX_REQUEST->value => 'true'])
+            ->get('omit-rendered-child-partials-via-service-flag?omit=true');
+
+        $content = trim($response->getContent());
+
+        // Partials included explicitly will be at the start of a new line - test templates will include space before
+        // the child partial.
         preg_match_all('`(^|\n)<div id="partial:child-component-component"`', $content, $childMatches);
         preg_match_all('`(^|\n)<div id="partial:content"`', $content, $contentMatches);
 
