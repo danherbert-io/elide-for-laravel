@@ -48,7 +48,7 @@ class Partial
 
         return Str::of($name)
             ->afterLast('\\')
-            ->replaceMatches('`[^a-z0-9]+`i', ' ')
+            ->replaceMatches('`[^a-z0-9-]+`i', ' ')
             ->snake()
             ->slug()
             ->toString();

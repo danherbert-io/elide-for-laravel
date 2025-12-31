@@ -6,6 +6,7 @@ namespace Feature;
 
 use Elide\Enums\Headers;
 use Elide\Htmx;
+use Elide\View\Partial;
 use Tests\TestCase;
 use Workbench\App\View\Components\TestComponent;
 use Workbench\App\View\Components\TestSpecifiedSwapTargetComponent;
@@ -133,5 +134,21 @@ class PartialTest extends TestCase
 
         $this->assertStringContainsString($customName, $attribute);
         $this->assertStringContainsString($attribute, $content);
+    }
+
+    public function test_partial_name_resolution_maintains_uuids(): void
+    {
+        // Numbers separated by dashes in particular are getting mangled...
+
+        $uuids = [
+            'a0a041b0-568f-435f-944c-a94b70d8585b',
+            'a0a041b0-55c4-41aa-a4e4-8477f509cd04',
+            'a0a041b0-5384-4e23-9275-017a055cfa58',
+            'a0a041b0-5384-4e23-9275-017a055cfa58',
+        ];
+
+        $resolved = array_map(Partial::resolvePartialName(...), $uuids);
+
+        $this->assertSame($uuids, $resolved);
     }
 }
