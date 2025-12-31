@@ -1,6 +1,10 @@
 
 # Changelog
 
+## [v1.1.2](https://github.com/danherbert-io/elide-for-laravel/compare/v1.1.1...v1.1.2) - 2025-12-31
+
+Fix support for UUIDs (and other dash style strings) when used within partial names.
+
 ## [v1.1.1](https://github.com/danherbert-io/elide-for-laravel/compare/v1.1.0...v1.1.1) - 2025-12-23
 
 Responses via `Htmx::render()` can now omit partials which have been rendered within other partials via the service `Htmx::omitRenderedChildPartials()` method.
